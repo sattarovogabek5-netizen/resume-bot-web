@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Obyektivka</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEF2F0;
+    --surface:#FFFFFF;
+    --ink:#16283A;
+    --ink-soft:#5B6B78;
+    --ink-faint:#93A0A9;
+    --brass:#B8842E;
+    --brass-deep:#8C6420;
+    --brass-tint:#F4E9D6;
+    --navy:#16283A;
+    --line:#DCE3DE;
+    --error:#B23A34;
+    --radius:14px;
+    --font-display:'PT Serif', Georgia, serif;
+    --font-body:'Manrope', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:96px;
+  }
+  .wrap{max-width:540px;margin:0 auto;padding:20px 18px 0;}
+
+  .langbar{display:flex;justify-content:flex-end;gap:6px;padding-bottom:10px;}
+  .lang-btn{
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    font-family:var(--font-body);font-weight:700;font-size:12.5px;
+    padding:6px 12px;border-radius:20px;cursor:pointer;
+  }
+  .lang-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  /* Document-style header banner */
+  .doc-banner{
+    background:var(--navy); color:#F3EFE6; border-radius:16px;
+    padding:20px 20px 18px; margin-bottom:20px; position:relative; overflow:hidden;
+  }
+  .doc-banner::after{
+    content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;
+    border:1.5px solid rgba(244,233,214,.18);border-radius:50%;
+  }
+  .doc-banner .eyebrow{font-size:12px;letter-spacing:.03em;color:var(--brass-tint);font-weight:700;margin:0 0 6px;opacity:.85;}
+  .doc-banner h1{font-family:var(--font-display);font-size:24px;font-weight:700;margin:0 0 6px;line-height:1.2;}
+  .doc-banner p{margin:0;font-size:13px;color:#C9D2CE;line-height:1.5;max-width:34ch;}
+
+  .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+  .progress-track{flex:1;height:4px;background:var(--line);border-radius:4px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--brass);border-radius:4px;transition:width .35s ease;}
+  .progress-label{font-size:12.5px;color:var(--ink-soft);font-weight:700;white-space:nowrap;}
+
+  .step{display:none;animation:rise .28s ease;}
+  .step.active{display:block;}
+  @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .step-title{font-family:var(--font-display);font-size:20px;font-weight:700;margin:0 0 3px;}
+  .step-sub{font-size:13.5px;color:var(--ink-soft);margin:0 0 18px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  input[type=text],input[type=number],input[type=date],textarea,select{
+    width:100%;font-family:var(--font-body);font-size:15px;color:var(--ink);
+    background:var(--surface);border:1.5px solid var(--line);border-radius:10px;
+    padding:12px 13px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus,textarea:focus,select:focus{border-color:var(--brass);box-shadow:0 0 0 3px var(--brass-tint);}
+  textarea{resize:vertical;min-height:70px;line-height:1.45;}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235B6B78'%3E%3Cpath d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%235B6B78' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:36px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .error-msg{color:var(--error);font-size:12.5px;margin-top:5px;display:none;}
+  .field.invalid input,.field.invalid textarea,.field.invalid select{border-color:var(--error);}
+  .field.invalid .error-msg{display:block;}
+
+  /* Photo */
+  .photo-box{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px dashed var(--line);border-radius:var(--radius);padding:14px;}
+  .photo-preview{width:64px;height:80px;border-radius:8px;background:var(--paper);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid var(--line);}
+  .photo-preview img{width:100%;height:100%;object-fit:cover;}
+  .photo-text strong{display:block;font-size:14px;margin-bottom:2px;}
+  .photo-text span{font-size:12.5px;color:var(--ink-soft);}
+  .photo-btn{margin-top:8px;display:inline-block;font-size:12.5px;font-weight:700;color:var(--brass-deep);background:var(--brass-tint);padding:6px 12px;border-radius:20px;cursor:pointer;}
+
+  /* Dynamic list cards (work history / relatives) */
+  .entry-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 4px;margin-bottom:12px;position:relative;}
+  .entry-card .entry-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .entry-card .entry-num{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--brass-deep);}
+  .entry-remove{border:none;background:none;color:var(--ink-faint);font-size:12.5px;font-weight:700;cursor:pointer;padding:4px 6px;}
+  .entry-remove:hover{color:var(--error);}
+  .add-entry-btn{
+    width:100%;border:1.5px dashed var(--line);background:transparent;color:var(--brass-deep);
+    font-family:var(--font-body);font-weight:700;font-size:13.5px;padding:13px;border-radius:12px;cursor:pointer;margin-bottom:6px;
+  }
+  .empty-hint{font-size:12.5px;color:var(--ink-faint);text-align:center;padding:14px 0;}
+
+  /* Review */
+  .review-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:4px 16px;margin-bottom:14px;}
+  .review-row{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .review-row:last-child{border-bottom:none;}
+  .review-row .k{font-size:12.5px;color:var(--ink-soft);font-weight:600;flex:0 0 42%;}
+  .review-row .v{font-size:13.5px;color:var(--ink);text-align:right;flex:1;word-break:break-word;}
+  .review-section-label{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--brass-deep);margin:22px 0 8px;}
+  .review-section-label:first-child{margin-top:0;}
+
+  .footer{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(238,242,240,0),var(--paper) 22%);padding:14px 18px 18px;}
+  .footer-inner{max-width:540px;margin:0 auto;display:flex;gap:10px;}
+  .btn{flex:1;border:none;border-radius:12px;padding:14px 18px;font-family:var(--font-body);font-weight:700;font-size:15px;cursor:pointer;transition:transform .1s,opacity .15s;}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);flex:0 0 auto;padding:14px 20px;}
+
+  .done-screen{display:none;text-align:center;padding:60px 20px;}
+  .done-screen.active{display:block;}
+  .done-icon{width:64px;height:64px;border-radius:50%;background:var(--brass-tint);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+  .done-screen h2{font-family:var(--font-display);font-size:22px;margin:0 0 8px;}
+  .done-screen p{color:var(--ink-soft);font-size:14px;max-width:32ch;margin:0 auto;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="formWrap">
+  <div class="langbar">
+    <button class="lang-btn" id="lang-uz">UZ</button>
+    <button class="lang-btn" id="lang-ru">RU</button>
+  </div>
+
+  <div class="doc-banner">
+    <p class="eyebrow" data-t="eyebrow">RASMIY HUJJAT</p>
+    <h1 data-t="title">Ma'lumotnoma (Obyektivka)</h1>
+    <p data-t="subtitle">Shaxsiy ma'lumotlaringizni rasmiy shablon bo'yicha to'ldiring.</p>
+  </div>
+
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:16.6%"></div></div>
+    <div class="progress-label"><span id="stepNow">1</span>/<span id="stepTotal">6</span></div>
+  </div>
+
+  <form id="obForm" autocomplete="off">
+
+    <!-- STEP 1: Identity -->
+    <section class="step active" data-step="1">
+      <h2 class="step-title" data-t="s1_title">Shaxsiy ma'lumotlar</h2>
+      <p class="step-sub" data-t="s1_sub">Hujjat sarlavhasida ko'rinadigan ma'lumotlar</p>
+
+      <div class="field">
+        <label data-t="l_photo">Rasm</label>
+        <div class="photo-box">
+          <div class="photo-preview" id="photoPreview">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#5B6B78" stroke-width="1.6"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="#5B6B78" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <div class="photo-text">
+            <strong data-t="photo_title">Rasm yuklang</strong>
+            <span data-t="photo_sub">3x4, aniq ko'rinishli</span>
+            <div><span class="photo-btn" id="photoTrigger" data-t="photo_btn">Rasm tanlash</span></div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" style="display:none">
+        </div>
+      </div>
+      <div class="field">
+        <label data-t="l_name">To'liq F.I.Sh</label>
+        <input type="text" id="full_name" data-t-ph="ph_name" required>
+        <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+      </div>
+      <div class="field">
+        <label data-t="l_status">Hozirgi lavozimi / mavqei</label>
+        <input type="text" id="status_line" data-t-ph="ph_status" required>
+        <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_birthyear">Tug'ilgan yili</label>
+          <input type="date" id="birth_date" required>
+          <div class="error-msg" data-t="err_req">Sanani tanlang</div>
+        </div>
+        <div class="field">
+          <label data-t="l_birthplace">Tug'ilgan joyi</label>
+          <input type="text" id="birth_place" data-t-ph="ph_birthplace">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_nat">Millati</label>
+          <input type="text" id="nationality" data-t-ph="ph_nat">
+        </div>
+        <div class="field">
+          <label data-t="l_party">Partiyaviyligi</label>
+          <input type="text" id="party" data-t-ph="ph_party">
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Education -->
+    <section class="step" data-step="2">
+      <h2 class="step-title" data-t="s2_title">Ma'lumoti</h2>
+      <p class="step-sub" data-t="s2_sub">Ta'lim va ilmiy ma'lumotlar</p>
+
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_edu">Ma'lumoti</label>
+          <div class="pillgroup" data-group="education_level" style="display:flex;flex-wrap:wrap;gap:8px;">
+            <button type="button" class="pill" data-value-t="edu_high" data-t="edu_high">Oliy</button>
+            <button type="button" class="pill" data-value-t="edu_sec" data-t="edu_sec">O'rta</button>
+            <button type="button" class="pill" data-value-t="edu_specsec" data-t="edu_specsec">O'rta maxsus</button>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label data-t="l_finished">Tamomlagan (o'quv yurti)</label>
+        <input type="text" id="finished_at" data-t-ph="ph_finished">
+      </div>
+      <div class="field">
+        <label data-t="l_spec">Ma'lumoti bo'yicha mutaxassisligi</label>
+        <input type="text" id="specialty" data-t-ph="ph_spec">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_degree">Ilmiy darajasi</label>
+          <input type="text" id="degree" placeholder="Yo'q">
+        </div>
+        <div class="field">
+          <label data-t="l_title">Ilmiy unvoni</label>
+          <input type="text" id="academic_title" placeholder="Yo'q">
+        </div>
+      </div>
+      <div class="field">
+        <label data-t="l_langs">Qaysi chet tillarini biladi</label>
+        <input type="text" id="foreign_languages" placeholder="Yo'q">
+      </div>
+    </section>
+
+    <!-- STEP 3: Additional -->
+    <section class="step" data-step="3">
+      <h2 class="step-title" data-t="s3_title">Qo'shimcha ma'lumotlar</h2>
+      <p class="step-sub" data-t="s3_sub">Mukofotlar va jamoat faoliyati</p>
+
+      <div class="field">
+        <label data-t="l_awards">Davlat mukofotlari bilan taqdirlanganmi</label>
+        <input type="text" id="awards" placeholder="Yo'q">
+      </div>
+      <div class="field">
+        <label data-t="l_deputy">Deputat yoki saylanadigan organ a'zosimi</label>
+        <textarea id="deputy_info" data-t-ph="ph_deputy"></textarea>
+      </div>
+    </section>
+
+    <!-- STEP 4: Work history -->
+    <section class="step" data-step="4">
+      <h2 class="step-title" data-t="s4_title">Mehnat faoliyati</h2>
+      <p class="step-sub" data-t="s4_sub">Ish davrlaringizni qo'shing</p>
+      <div id="workList"></div>
+      <button type="button" class="add-entry-btn" id="addWork" data-t="add_work">+ Ish joyi qo'shish</button>
+    </section>
+
+    <!-- STEP 5: Relatives -->
+    <section class="step" data-step="5">
+      <h2 class="step-title" data-t="s5_title">Yaqin qarindoshlari</h2>
+      <p class="step-sub" data-t="s5_sub">Ota, ona va boshqa yaqinlaringiz haqida ma'lumot</p>
+      <div id="relList"></div>
+      <button type="button" class="add-entry-btn" id="addRel" data-t="add_rel">+ Qarindosh qo'shish</button>
+    </section>
+
+    <!-- STEP 6: Review -->
+    <section class="step" data-step="6">
+      <h2 class="step-title" data-t="s6_title">Tekshirib chiqing</h2>
+      <p class="step-sub" data-t="s6_sub">Yuborishdan oldin ma'lumotlarni ko'rib chiqing</p>
+      <div id="reviewArea"></div>
+    </section>
+
+  </form>
+
+  <div class="done-screen" id="doneScreen">
+    <div class="done-icon">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#8C6420" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 data-t="done_title">Yuborildi!</h2>
+    <p data-t="done_sub">Ma'lumotnomangiz qabul qilindi. Botga qaytishingiz mumkin.</p>
+  </div>
+</div>
+
+<div class="footer" id="footerNav">
+  <div class="footer-inner">
+    <button type="button" class="btn btn-ghost" id="backBtn" data-t="back" disabled>Orqaga</button>
+    <button type="button" class="btn btn-primary" id="nextBtn" data-t="next">Davom etish</button>
+  </div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+const T = {
+  uz: {
+    eyebrow:"RASMIY HUJJAT", title:"Ma'lumotnoma (Obyektivka)", subtitle:"Shaxsiy ma'lumotlaringizni rasmiy shablon bo'yicha to'ldiring.",
+    s1_title:"Shaxsiy ma'lumotlar", s1_sub:"Hujjat sarlavhasida ko'rinadigan ma'lumotlar",
+    s2_title:"Ma'lumoti", s2_sub:"Ta'lim va ilmiy ma'lumotlar",
+    s3_title:"Qo'shimcha ma'lumotlar", s3_sub:"Mukofotlar va jamoat faoliyati",
+    s4_title:"Mehnat faoliyati", s4_sub:"Ish davrlaringizni qo'shing",
+    s5_title:"Yaqin qarindoshlari", s5_sub:"Ota, ona va boshqa yaqinlaringiz haqida ma'lumot",
+    s6_title:"Tekshirib chiqing", s6_sub:"Yuborishdan oldin ma'lumotlarni ko'rib chiqing",
+    l_photo:"Rasm", photo_title:"Rasm yuklang", photo_sub:"3x4, aniq ko'rinishli", photo_btn:"Rasm tanlash",
+    l_name:"To'liq F.I.Sh", ph_name:"Valiyev Alijon Alisher o'g'li",
+    l_status:"Hozirgi lavozimi / mavqei", ph_status:"Toshkent transport universiteti, mexanika fakulteti, 1-bosqich talabasi",
+    l_birthyear:"Tug'ilgan yili", l_birthplace:"Tug'ilgan joyi", ph_birthplace:"Toshkent shahar",
+    l_nat:"Millati", ph_nat:"O'zbek", l_party:"Partiyaviyligi", ph_party:"Partiyasiz",
+    l_edu:"Ma'lumoti", edu_high:"Oliy", edu_sec:"O'rta", edu_specsec:"O'rta maxsus",
+    l_finished:"Tamomlagan", ph_finished:"O'quv yurti nomi",
+    l_spec:"Mutaxassisligi", ph_spec:"Mutaxassislik nomi",
+    l_degree:"Ilmiy darajasi", l_title:"Ilmiy unvoni", l_langs:"Chet tillari",
+    l_awards:"Davlat mukofotlari", l_deputy:"Deputatlik / a'zolik", ph_deputy:"To'liq ko'rsating yoki bo'sh qoldiring",
+    add_work:"+ Ish joyi qo'shish", add_rel:"+ Qarindosh qo'shish",
+    empty_work:"Hozircha ish joyi qo'shilmagan", empty_rel:"Hozircha qarindosh qo'shilmagan",
+    w_period:"Davr", w_period_ph:"2020 — 2022", w_position:"Lavozim va ish joyi", w_position_ph:"Bosh mutaxassis, \"Tashkilot\" MChJ",
+    r_relation:"Qarindoshligi", r_name:"F.I.Sh", r_name_ph:"To'liq ism", r_birth:"Tug'ilgan yili va joyi", r_birth_ph:"1975, Toshkent",
+    r_work:"Ish joyi va lavozimi", r_work_ph:"Ish joyi", r_address:"Doimiy yashash manzili", r_address_ph:"Manzil",
+    rel_father:"Otasi", rel_mother:"Onasi", rel_brother_e:"Akasi", rel_brother_y:"Ukasi", rel_sister_e:"Opasi", rel_sister_y:"Singlisi",
+    rel_son:"O'g'li", rel_daughter:"Qizi", rel_father_in_law:"Qaynotasi", rel_mother_in_law:"Qaynonasi", rel_spouse:"Turmush o'rtog'i", rel_other:"Boshqa",
+    back:"Orqaga", next:"Davom etish", submit:"Yuborish", err_req:"Bu maydonni to'ldiring", entry:"№",
+    done_title:"Yuborildi!", done_sub:"Ma'lumotnomangiz qabul qilindi. Botga qaytishingiz mumkin.",
+    remove:"O'chirish",
+    review_personal:"Shaxsiy ma'lumotlar", review_edu:"Ma'lumoti", review_extra:"Qo'shimcha",
+    review_work:"Mehnat faoliyati", review_rel:"Qarindoshlari", not_filled:"—"
+  },
+  ru: {
+    eyebrow:"ОФИЦИАЛЬНЫЙ ДОКУМЕНТ", title:"Объективка (справка)", subtitle:"Заполните личные данные по официальному образцу.",
+    s1_title:"Личные данные", s1_sub:"Данные, отображаемые в заголовке документа",
+    s2_title:"Образование", s2_sub:"Учебные и научные сведения",
+    s3_title:"Дополнительные сведения", s3_sub:"Награды и общественная деятельность",
+    s4_title:"Трудовая деятельность", s4_sub:"Добавьте периоды работы",
+    s5_title:"Близкие родственники", s5_sub:"Сведения о родителях и других родственниках",
+    s6_title:"Проверьте данные", s6_sub:"Перед отправкой всё проверьте",
+    l_photo:"Фото", photo_title:"Загрузите фото", photo_sub:"3x4, чёткое изображение", photo_btn:"Выбрать фото",
+    l_name:"Полное Ф.И.О.", ph_name:"Иванов Иван Иванович",
+    l_status:"Текущая должность / статус", ph_status:"Ташкентский транспортный университет, студент 1 курса",
+    l_birthyear:"Год рождения", l_birthplace:"Место рождения", ph_birthplace:"г. Ташкент",
+    l_nat:"Национальность", ph_nat:"Узбек", l_party:"Партийность", ph_party:"Беспартийный",
+    l_edu:"Образование", edu_high:"Высшее", edu_sec:"Среднее", edu_specsec:"Средне-специальное",
+    l_finished:"Окончил(а)", ph_finished:"Название учебного заведения",
+    l_spec:"Специальность по образованию", ph_spec:"Название специальности",
+    l_degree:"Учёная степень", l_title:"Учёное звание", l_langs:"Иностранные языки",
+    l_awards:"Государственные награды", l_deputy:"Депутатство / членство", ph_deputy:"Укажите полностью или оставьте пустым",
+    add_work:"+ Добавить место работы", add_rel:"+ Добавить родственника",
+    empty_work:"Места работы ещё не добавлены", empty_rel:"Родственники ещё не добавлены",
+    w_period:"Период", w_period_ph:"2020 — 2022", w_position:"Должность и место работы", w_position_ph:"Главный специалист, ООО «Компания»",
+    r_relation:"Родство", r_name:"Ф.И.О.", r_name_ph:"Полное имя", r_birth:"Год и место рождения", r_birth_ph:"1975, Ташкент",
+    r_work:"Место работы и должность", r_work_ph:"Место работы", r_address:"Постоянный адрес", r_address_ph:"Адрес",
+    rel_father:"Отец", rel_mother:"Мать", rel_brother_e:"Старший брат", rel_brother_y:"Младший брат", rel_sister_e:"Старшая сестра", rel_sister_y:"Младшая сестра",
+    rel_son:"Сын", rel_daughter:"Дочь", rel_father_in_law:"Тесть/свёкор", rel_mother_in_law:"Тёща/свекровь", rel_spouse:"Супруг(а)", rel_other:"Другое",
+    back:"Назад", next:"Продолжить", submit:"Отправить", err_req:"Заполните это поле", entry:"№",
+    done_title:"Отправлено!", done_sub:"Ваша справка принята. Можете вернуться в бота.",
+    remove:"Удалить",
+    review_personal:"Личные данные", review_edu:"Образование", review_extra:"Дополнительно",
+    review_work:"Трудовая деятельность", review_rel:"Родственники", not_filled:"—"
+  }
+};
+
+let lang = (tg?.initDataUnsafe?.start_param === 'ru' || new URLSearchParams(location.search).get('lang') === 'ru') ? 'ru' : 'uz';
+const totalSteps = 6;
+let currentStep = 1;
+const state = { education_level:'', photoDataUrl:'' };
+let workEntries = [];
+let relEntries = [];
+let workSeq = 0, relSeq = 0;
+
+const RELATION_KEYS = ['rel_father','rel_mother','rel_brother_e','rel_brother_y','rel_sister_e','rel_sister_y','rel_son','rel_daughter','rel_father_in_law','rel_mother_in_law','rel_spouse','rel_other'];
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const key = el.getAttribute('data-t');
+    if (T[lang][key] !== undefined){
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = T[lang][key];
+      else el.textContent = T[lang][key];
+    }
+  });
+  document.querySelectorAll('[data-t-ph]').forEach(el=>{
+    const key = el.getAttribute('data-t-ph');
+    if (T[lang][key]) el.placeholder = T[lang][key];
+  });
+  document.querySelectorAll('.pill[data-value-t]').forEach(el=>{
+    const key = el.getAttribute('data-value-t');
+    if (T[lang][key]) el.textContent = T[lang][key];
+  });
+  document.getElementById('lang-uz').classList.toggle('active', lang==='uz');
+  document.getElementById('lang-ru').classList.toggle('active', lang==='ru');
+  updateNextLabel();
+  renderWorkList();
+  renderRelList();
+  if (currentStep === totalSteps) renderReview();
+}
+document.getElementById('lang-uz').onclick = ()=>{ lang='uz'; applyLang(); };
+document.getElementById('lang-ru').onclick = ()=>{ lang='ru'; applyLang(); };
+
+document.querySelectorAll('.pillgroup').forEach(group=>{
+  const key = group.getAttribute('data-group');
+  group.querySelectorAll('.pill').forEach(pill=>{
+    pill.addEventListener('click', ()=>{
+      group.querySelectorAll('.pill').forEach(p=>p.classList.remove('selected'));
+      pill.classList.add('selected');
+      state[key] = T[lang][pill.getAttribute('data-value-t')];
+    });
+    pill.style.cssText += 'border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-family:var(--font-body);font-weight:600;font-size:13.5px;padding:9px 15px;border-radius:24px;cursor:pointer;transition:.15s;';
+  });
+});
+document.querySelectorAll('.pill.selected').forEach(p=>{ p.style.background='var(--navy)'; p.style.borderColor='var(--navy)'; p.style.color='#fff'; });
+// live style for selection (delegate)
+document.addEventListener('click', (e)=>{
+  if (e.target.classList.contains('pill')){
+    const group = e.target.closest('.pillgroup');
+    group.querySelectorAll('.pill').forEach(p=>{ p.style.background='var(--surface)'; p.style.borderColor='var(--line)'; p.style.color='var(--ink-soft)'; });
+    e.target.style.background='var(--navy)'; e.target.style.borderColor='var(--navy)'; e.target.style.color='#fff';
+  }
+});
+
+/* Photo */
+document.getElementById('photoTrigger').onclick = ()=> document.getElementById('photoInput').click();
+document.getElementById('photoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    state.photoDataUrl = reader.result;
+    document.getElementById('photoPreview').innerHTML = `<img src="${reader.result}" alt="photo">`;
+  };
+  reader.readAsDataURL(file);
+});
+
+/* Work entries */
+function addWorkEntry(){
+  workEntries.push({ id: ++workSeq, period:'', position:'' });
+  renderWorkList();
+}
+function removeWorkEntry(id){ workEntries = workEntries.filter(w=>w.id!==id); renderWorkList(); }
+function renderWorkList(){
+  const list = document.getElementById('workList');
+  if (workEntries.length === 0){
+    list.innerHTML = `<div class="empty-hint">${T[lang].empty_work}</div>`;
+    return;
+  }
+  list.innerHTML = workEntries.map((w,i)=>`
+    <div class="entry-card">
+      <div class="entry-head">
+        <span class="entry-num">${T[lang].entry}${i+1}</span>
+        <button type="button" class="entry-remove" data-remove-work="${w.id}">${T[lang].remove}</button>
+      </div>
+      <div class="field">
+        <label>${T[lang].w_period}</label>
+        <input type="text" data-work-period="${w.id}" value="${w.period}" placeholder="${T[lang].w_period_ph}">
+      </div>
+      <div class="field">
+        <label>${T[lang].w_position}</label>
+        <input type="text" data-work-position="${w.id}" value="${w.position}" placeholder="${T[lang].w_position_ph}">
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-remove-work]').forEach(btn=>btn.onclick = ()=>removeWorkEntry(+btn.getAttribute('data-remove-work')));
+  list.querySelectorAll('[data-work-period]').forEach(inp=>inp.oninput = ()=>{
+    const w = workEntries.find(x=>x.id===+inp.getAttribute('data-work-period')); if(w) w.period = inp.value;
+  });
+  list.querySelectorAll('[data-work-position]').forEach(inp=>inp.oninput = ()=>{
+    const w = workEntries.find(x=>x.id===+inp.getAttribute('data-work-position')); if(w) w.position = inp.value;
+  });
+}
+document.getElementById('addWork').onclick = addWorkEntry;
+
+/* Relative entries */
+function addRelEntry(){
+  relEntries.push({ id: ++relSeq, relationKey:'rel_father', name:'', birth:'', work:'', address:'' });
+  renderRelList();
+}
+function removeRelEntry(id){ relEntries = relEntries.filter(r=>r.id!==id); renderRelList(); }
+function renderRelList(){
+  const list = document.getElementById('relList');
+  if (relEntries.length === 0){
+    list.innerHTML = `<div class="empty-hint">${T[lang].empty_rel}</div>`;
+    return;
+  }
+  list.innerHTML = relEntries.map((r,i)=>`
+    <div class="entry-card">
+      <div class="entry-head">
+        <span class="entry-num">${T[lang].entry}${i+1}</span>
+        <button type="button" class="entry-remove" data-remove-rel="${r.id}">${T[lang].remove}</button>
+      </div>
+      <div class="field">
+        <label>${T[lang].r_relation}</label>
+        <select data-rel-relation="${r.id}">
+          ${RELATION_KEYS.map(k=>`<option value="${k}" ${r.relationKey===k?'selected':''}>${T[lang][k]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>${T[lang].r_name}</label>
+        <input type="text" data-rel-name="${r.id}" value="${r.name}" placeholder="${T[lang].r_name_ph}">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>${T[lang].r_birth}</label>
+          <input type="text" data-rel-birth="${r.id}" value="${r.birth}" placeholder="${T[lang].r_birth_ph}">
+        </div>
+        <div class="field">
+          <label>${T[lang].r_work}</label>
+          <input type="text" data-rel-work="${r.id}" value="${r.work}" placeholder="${T[lang].r_work_ph}">
+        </div>
+      </div>
+      <div class="field">
+        <label>${T[lang].r_address}</label>
+        <input type="text" data-rel-address="${r.id}" value="${r.address}" placeholder="${T[lang].r_address_ph}">
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-remove-rel]').forEach(btn=>btn.onclick = ()=>removeRelEntry(+btn.getAttribute('data-remove-rel')));
+  list.querySelectorAll('[data-rel-relation]').forEach(sel=>sel.onchange = ()=>{
+    const r = relEntries.find(x=>x.id===+sel.getAttribute('data-rel-relation')); if(r) r.relationKey = sel.value;
+  });
+  list.querySelectorAll('[data-rel-name]').forEach(inp=>inp.oninput = ()=>{
+    const r = relEntries.find(x=>x.id===+inp.getAttribute('data-rel-name')); if(r) r.name = inp.value;
+  });
+  list.querySelectorAll('[data-rel-birth]').forEach(inp=>inp.oninput = ()=>{
+    const r = relEntries.find(x=>x.id===+inp.getAttribute('data-rel-birth')); if(r) r.birth = inp.value;
+  });
+  list.querySelectorAll('[data-rel-work]').forEach(inp=>inp.oninput = ()=>{
+    const r = relEntries.find(x=>x.id===+inp.getAttribute('data-rel-work')); if(r) r.work = inp.value;
+  });
+  list.querySelectorAll('[data-rel-address]').forEach(inp=>inp.oninput = ()=>{
+    const r = relEntries.find(x=>x.id===+inp.getAttribute('data-rel-address')); if(r) r.address = inp.value;
+  });
+}
+document.getElementById('addRel').onclick = addRelEntry;
+
+/* Navigation */
+const backBtn = document.getElementById('backBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+function goToStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.step[data-step="${n}"]`).classList.add('active');
+  currentStep = n;
+  document.getElementById('stepNow').textContent = n;
+  document.getElementById('progressFill').style.width = ((n/totalSteps)*100)+'%';
+  backBtn.disabled = n === 1;
+  updateNextLabel();
+  if (n === totalSteps) renderReview();
+  window.scrollTo(0,0);
+}
+function updateNextLabel(){ nextBtn.textContent = currentStep === totalSteps ? T[lang].submit : T[lang].next; }
+
+const stepRequiredIds = { 1: ['full_name','status_line','birth_date'] };
+function validateStep(n){
+  let ok = true;
+  (stepRequiredIds[n]||[]).forEach(id=>{
+    const el = document.getElementById(id);
+    const field = el.closest('.field');
+    if (!el.value.trim()){ field.classList.add('invalid'); ok = false; }
+    else field.classList.remove('invalid');
+  });
+  return ok;
+}
+nextBtn.addEventListener('click', ()=>{
+  if (!validateStep(currentStep)) return;
+  if (currentStep < totalSteps){ goToStep(currentStep+1); }
+  else { submitForm(); }
+});
+backBtn.addEventListener('click', ()=>{ if (currentStep>1) goToStep(currentStep-1); });
+
+/* Review */
+function fieldVal(id){ const v = document.getElementById(id)?.value.trim(); return v ? v : T[lang].not_filled; }
+
+function renderReview(){
+  const groups = [
+    { label:T[lang].review_personal, rows:[
+      [T[lang].l_name, fieldVal('full_name')], [T[lang].l_status, fieldVal('status_line')],
+      [T[lang].l_birthyear, fieldVal('birth_date')], [T[lang].l_birthplace, fieldVal('birth_place')],
+      [T[lang].l_nat, fieldVal('nationality')], [T[lang].l_party, fieldVal('party')]
+    ]},
+    { label:T[lang].review_edu, rows:[
+      [T[lang].l_edu, state.education_level || T[lang].not_filled], [T[lang].l_finished, fieldVal('finished_at')],
+      [T[lang].l_spec, fieldVal('specialty')], [T[lang].l_degree, fieldVal('degree')],
+      [T[lang].l_title, fieldVal('academic_title')], [T[lang].l_langs, fieldVal('foreign_languages')]
+    ]},
+    { label:T[lang].review_extra, rows:[
+      [T[lang].l_awards, fieldVal('awards')], [T[lang].l_deputy, fieldVal('deputy_info')]
+    ]}
+  ];
+  const area = document.getElementById('reviewArea');
+  let html = groups.map(g=>`
+    <div class="review-section-label">${g.label}</div>
+    <div class="review-card">
+      ${g.rows.map(([k,v])=>`<div class="review-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+    </div>`).join('');
+
+  html += `<div class="review-section-label">${T[lang].review_work}</div>`;
+  if (workEntries.length === 0){
+    html += `<div class="review-card"><div class="review-row"><span class="v" style="text-align:left;">${T[lang].empty_work}</span></div></div>`;
+  } else {
+    html += `<div class="review-card">` + workEntries.map(w=>`
+      <div class="review-row"><span class="k">${w.period||T[lang].not_filled}</span><span class="v">${w.position||T[lang].not_filled}</span></div>
+    `).join('') + `</div>`;
+  }
+
+  html += `<div class="review-section-label">${T[lang].review_rel}</div>`;
+  if (relEntries.length === 0){
+    html += `<div class="review-card"><div class="review-row"><span class="v" style="text-align:left;">${T[lang].empty_rel}</span></div></div>`;
+  } else {
+    html += relEntries.map(r=>`
+      <div class="review-card">
+        <div class="review-row"><span class="k">${T[lang].r_relation}</span><span class="v">${T[lang][r.relationKey]}</span></div>
+        <div class="review-row"><span class="k">${T[lang].r_name}</span><span class="v">${r.name||T[lang].not_filled}</span></div>
+        <div class="review-row"><span class="k">${T[lang].r_birth}</span><span class="v">${r.birth||T[lang].not_filled}</span></div>
+        <div class="review-row"><span class="k">${T[lang].r_work}</span><span class="v">${r.work||T[lang].not_filled}</span></div>
+        <div class="review-row"><span class="k">${T[lang].r_address}</span><span class="v">${r.address||T[lang].not_filled}</span></div>
+      </div>
+    `).join('');
+  }
+  area.innerHTML = html;
+}
+
+/* Submit */
+function submitForm(){
+  const payload = {
+    type: 'obyektivka',
+    lang,
+    full_name: document.getElementById('full_name').value.trim(),
+    status_line: document.getElementById('status_line').value.trim(),
+    birth_date: document.getElementById('birth_date').value,
+    birth_place: document.getElementById('birth_place').value.trim(),
+    nationality: document.getElementById('nationality').value.trim(),
+    party: document.getElementById('party').value.trim(),
+    education_level: state.education_level || '',
+    finished_at: document.getElementById('finished_at').value.trim(),
+    specialty: document.getElementById('specialty').value.trim(),
+    degree: document.getElementById('degree').value.trim(),
+    academic_title: document.getElementById('academic_title').value.trim(),
+    foreign_languages: document.getElementById('foreign_languages').value.trim(),
+    awards: document.getElementById('awards').value.trim(),
+    deputy_info: document.getElementById('deputy_info').value.trim(),
+    work_history: workEntries.map(w=>({ period:w.period, position:w.position })),
+    relatives: relEntries.map(r=>({ relation:T[lang][r.relationKey], name:r.name, birth:r.birth, work:r.work, address:r.address })),
+    photo_base64: state.photoDataUrl || ''
+  };
+
+  document.getElementById('formWrap').querySelectorAll('form, .doc-banner, .progress-row').forEach(el=>el.style.display='none');
+  document.getElementById('doneScreen').classList.add('active');
+  document.getElementById('footerNav').style.display = 'none';
+
+  if (tg){
+    tg.MainButton?.hide();
+    try{ tg.sendData(JSON.stringify(payload)); }catch(e){ console.error(e); }
+    setTimeout(()=>tg.close(), 1400);
+  } else {
+    console.log('Payload (no Telegram context):', payload);
+  }
+}
+
+renderWorkList();
+renderRelList();
+applyLang();
+</script>
+</body>
+</html>

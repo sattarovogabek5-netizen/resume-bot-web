@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rezyume</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEF2F0;
+    --surface:#FFFFFF;
+    --ink:#16283A;
+    --ink-soft:#5B6B78;
+    --ink-faint:#93A0A9;
+    --brass:#B8842E;
+    --brass-deep:#8C6420;
+    --brass-tint:#F4E9D6;
+    --line:#DCE3DE;
+    --error:#B23A34;
+    --success:#3B7A57;
+    --radius:14px;
+    --font-display:'PT Serif', Georgia, serif;
+    --font-body:'Manrope', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding-bottom:96px;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:20px 18px 0;}
+
+  /* Language toggle */
+  .langbar{display:flex;justify-content:flex-end;gap:6px;padding-bottom:10px;}
+  .lang-btn{
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    font-family:var(--font-body);font-weight:700;font-size:12.5px;
+    padding:6px 12px;border-radius:20px;cursor:pointer;letter-spacing:.02em;
+    transition:background .15s,color .15s,border-color .15s;
+  }
+  .lang-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  /* Header */
+  .head{padding:6px 0 22px;}
+  .head .eyebrow{font-size:13px;color:var(--brass-deep);font-weight:700;margin:0 0 4px;}
+  .head h1{
+    font-family:var(--font-display);font-weight:700;font-size:30px;line-height:1.15;
+    margin:0 0 6px;color:var(--ink);
+  }
+  .head p{margin:0;color:var(--ink-soft);font-size:14.5px;line-height:1.5;max-width:38ch;}
+
+  /* Progress */
+  .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+  .progress-track{flex:1;height:4px;background:var(--line);border-radius:4px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--brass);border-radius:4px;transition:width .35s ease;}
+  .progress-label{font-size:12.5px;color:var(--ink-soft);font-weight:700;white-space:nowrap;}
+
+  /* Steps */
+  .step{display:none;animation:rise .28s ease;}
+  .step.active{display:block;}
+  @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .step-title{font-family:var(--font-display);font-size:20px;font-weight:700;margin:0 0 3px;}
+  .step-sub{font-size:13.5px;color:var(--ink-soft);margin:0 0 18px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .field .hint{font-size:12px;color:var(--ink-faint);margin-top:5px;}
+  input[type=text],input[type=tel],input[type=email],input[type=number],input[type=date],textarea,select{
+    width:100%;font-family:var(--font-body);font-size:15px;color:var(--ink);
+    background:var(--surface);border:1.5px solid var(--line);border-radius:10px;
+    padding:12px 13px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus,textarea:focus,select:focus{border-color:var(--brass);box-shadow:0 0 0 3px var(--brass-tint);}
+  textarea{resize:vertical;min-height:80px;line-height:1.45;}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235B6B78'%3E%3Cpath d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%235B6B78' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:36px;}
+
+  /* Choice pills */
+  .pillgroup{display:flex;flex-wrap:wrap;gap:8px;}
+  .pill{
+    border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    font-family:var(--font-body);font-weight:600;font-size:13.5px;
+    padding:9px 15px;border-radius:24px;cursor:pointer;transition:.15s;
+  }
+  .pill.selected{background:var(--ink);border-color:var(--ink);color:#fff;}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  /* Photo */
+  .photo-box{
+    display:flex;align-items:center;gap:14px;background:var(--surface);
+    border:1.5px dashed var(--line);border-radius:var(--radius);padding:14px;
+  }
+  .photo-preview{
+    width:64px;height:80px;border-radius:8px;background:var(--paper);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;
+    border:1px solid var(--line);
+  }
+  .photo-preview img{width:100%;height:100%;object-fit:cover;}
+  .photo-preview svg{opacity:.35;}
+  .photo-text strong{display:block;font-size:14px;margin-bottom:2px;}
+  .photo-text span{font-size:12.5px;color:var(--ink-soft);}
+  .photo-btn{
+    margin-top:8px;display:inline-block;font-size:12.5px;font-weight:700;color:var(--brass-deep);
+    background:var(--brass-tint);padding:6px 12px;border-radius:20px;cursor:pointer;
+  }
+
+  /* Review */
+  .review-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:4px 16px;margin-bottom:14px;}
+  .review-row{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .review-row:last-child{border-bottom:none;}
+  .review-row .k{font-size:12.5px;color:var(--ink-soft);font-weight:600;flex:0 0 40%;}
+  .review-row .v{font-size:13.5px;color:var(--ink);text-align:right;flex:1;word-break:break-word;}
+  .review-section-label{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--brass-deep);margin:22px 0 8px;}
+  .review-section-label:first-child{margin-top:0;}
+
+  /* Footer nav */
+  .footer{
+    position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(238,242,240,0),var(--paper) 22%);
+    padding:14px 18px 18px;
+  }
+  .footer-inner{max-width:520px;margin:0 auto;display:flex;gap:10px;}
+  .btn{
+    flex:1;border:none;border-radius:12px;padding:14px 18px;font-family:var(--font-body);
+    font-weight:700;font-size:15px;cursor:pointer;transition:transform .1s,opacity .15s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:disabled{opacity:.35;}
+  .btn-ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);flex:0 0 auto;padding:14px 20px;}
+
+  .error-msg{color:var(--error);font-size:12.5px;margin-top:5px;display:none;}
+  .field.invalid input,.field.invalid textarea,.field.invalid select{border-color:var(--error);}
+  .field.invalid .error-msg{display:block;}
+
+  .done-screen{display:none;text-align:center;padding:60px 20px;}
+  .done-screen.active{display:block;}
+  .done-icon{width:64px;height:64px;border-radius:50%;background:var(--brass-tint);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+  .done-screen h2{font-family:var(--font-display);font-size:22px;margin:0 0 8px;}
+  .done-screen p{color:var(--ink-soft);font-size:14px;max-width:32ch;margin:0 auto;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="formWrap">
+  <div class="langbar">
+    <button class="lang-btn" id="lang-uz">UZ</button>
+    <button class="lang-btn" id="lang-ru">RU</button>
+  </div>
+
+  <div class="head">
+    <p class="eyebrow" data-t="eyebrow">REZYUME KONSTRUKTORI</p>
+    <h1 data-t="title">Rezyumeni birga tuzamiz</h1>
+    <p data-t="subtitle">Bir necha bosqich — va tayyor, chiroyli rezyume sizniki.</p>
+  </div>
+
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:14.3%"></div></div>
+    <div class="progress-label"><span id="stepNow">1</span>/<span id="stepTotal">7</span></div>
+  </div>
+
+  <form id="resumeForm" autocomplete="off">
+
+    <!-- STEP 1: Personal -->
+    <section class="step active" data-step="1">
+      <h2 class="step-title" data-t="s1_title">Shaxsiy ma'lumotlar</h2>
+      <p class="step-sub" data-t="s1_sub">Kim ekaningiz haqida asosiy ma'lumot</p>
+
+      <div class="field">
+        <label data-t="l_name">To'liq F.I.Sh</label>
+        <input type="text" id="full_name" data-t-ph="ph_name" required>
+        <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+      </div>
+      <div class="field">
+        <label data-t="l_nat">Fuqarolik</label>
+        <input type="text" id="nationality" data-t-ph="ph_nat" required>
+        <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_birth">Tug'ilgan sana</label>
+          <input type="date" id="birth_date" required>
+          <div class="error-msg" data-t="err_req">Sanani tanlang</div>
+        </div>
+        <div class="field">
+          <label data-t="l_city">Shahar</label>
+          <input type="text" id="city" data-t-ph="ph_city" required>
+          <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+        </div>
+      </div>
+      <div class="field">
+        <label data-t="l_gender">Jinsi</label>
+        <div class="pillgroup" data-group="gender">
+          <button type="button" class="pill" data-value="Erkak" data-t="g_male">Erkak</button>
+          <button type="button" class="pill" data-value="Ayol" data-t="g_female">Ayol</button>
+        </div>
+        <div class="error-msg" data-t="err_choice">Birini tanlang</div>
+      </div>
+      <div class="field">
+        <label data-t="l_married">Oilaviy holati</label>
+        <div class="pillgroup" data-group="marital_status">
+          <button type="button" class="pill" data-value-t="ms_single" data-t="ms_single">Bo'ydoq</button>
+          <button type="button" class="pill" data-value-t="ms_married" data-t="ms_married">Uylangan/Turmushga chiqqan</button>
+          <button type="button" class="pill" data-value-t="ms_divorced" data-t="ms_divorced">Ajrashgan</button>
+        </div>
+        <div class="error-msg" data-t="err_choice">Birini tanlang</div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Education -->
+    <section class="step" data-step="2">
+      <h2 class="step-title" data-t="s2_title">Ta'lim</h2>
+      <p class="step-sub" data-t="s2_sub">O'qish joyingiz va yo'nalishingiz</p>
+
+      <div class="field">
+        <label data-t="l_edu">Ma'lumot darajasi</label>
+        <div class="pillgroup" data-group="education_level">
+          <button type="button" class="pill" data-value-t="edu_high" data-t="edu_high">Oliy</button>
+          <button type="button" class="pill" data-value-t="edu_sec" data-t="edu_sec">O'rta</button>
+          <button type="button" class="pill" data-value-t="edu_specsec" data-t="edu_specsec">O'rta maxsus</button>
+        </div>
+        <div class="error-msg" data-t="err_choice">Birini tanlang</div>
+      </div>
+      <div class="field">
+        <label data-t="l_univ">O'quv yurti</label>
+        <input type="text" id="university" data-t-ph="ph_univ">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_fac">Fakultet</label>
+          <input type="text" id="faculty" data-t-ph="ph_fac">
+        </div>
+        <div class="field">
+          <label data-t="l_grad">Bitirgan yili</label>
+          <input type="number" id="graduation_year" min="1960" max="2035" placeholder="2024">
+        </div>
+      </div>
+      <div class="field">
+        <label data-t="l_spec">Mutaxassislik</label>
+        <input type="text" id="specialty" data-t-ph="ph_spec">
+      </div>
+    </section>
+
+    <!-- STEP 3: Work -->
+    <section class="step" data-step="3">
+      <h2 class="step-title" data-t="s3_title">Ish tajribasi</h2>
+      <p class="step-sub" data-t="s3_sub">Agar ishlamagan bo'lsangiz, "yo'q" deb yozing</p>
+
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_job">Lavozim</label>
+          <input type="text" id="job_title" data-t-ph="ph_job">
+        </div>
+        <div class="field">
+          <label data-t="l_comp">Kompaniya</label>
+          <input type="text" id="company_name" data-t-ph="ph_comp">
+        </div>
+      </div>
+      <div class="field">
+        <label data-t="l_period">Ish davri</label>
+        <input type="text" id="work_period" placeholder="2020 — 2022">
+      </div>
+      <div class="field">
+        <label data-t="l_resp">Vazifalar</label>
+        <textarea id="responsibilities" data-t-ph="ph_resp"></textarea>
+      </div>
+    </section>
+
+    <!-- STEP 4: Skills -->
+    <section class="step" data-step="4">
+      <h2 class="step-title" data-t="s4_title">Ko'nikmalar</h2>
+      <p class="step-sub" data-t="s4_sub">Nimalarni bilasiz?</p>
+
+      <div class="field">
+        <label data-t="l_pskills">Kasbiy ko'nikmalar</label>
+        <textarea id="professional_skills" data-t-ph="ph_pskills"></textarea>
+      </div>
+      <div class="field">
+        <label data-t="l_it">Kompyuter ko'nikmalari</label>
+        <input type="text" id="computer_skills" data-t-ph="ph_it">
+      </div>
+      <div class="field">
+        <label data-t="l_lang">Xorijiy tillar</label>
+        <input type="text" id="languages" data-t-ph="ph_lang">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_drive">Haydovchilik guvohnomasi</label>
+          <input type="text" id="driver_license" placeholder="B, C">
+        </div>
+        <div class="field">
+          <label data-t="l_army">Harbiy xizmat</label>
+          <div class="pillgroup" data-group="military_service">
+            <button type="button" class="pill" data-value-t="yes" data-t="yes">Ha</button>
+            <button type="button" class="pill" data-value-t="no" data-t="no">Yo'q</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 5: Contact -->
+    <section class="step" data-step="5">
+      <h2 class="step-title" data-t="s5_title">Aloqa va shartlar</h2>
+      <p class="step-sub" data-t="s5_sub">Siz bilan qanday bog'lanishadi</p>
+
+      <div class="field">
+        <label data-t="l_phone">Telefon raqami</label>
+        <input type="tel" id="contact_phone" placeholder="+998 90 123 45 67" required>
+        <div class="error-msg" data-t="err_req">Telefon raqamini kiriting</div>
+      </div>
+      <div class="field">
+        <label data-t="l_email">Email</label>
+        <input type="email" id="contact_email" placeholder="email@example.com">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-t="l_salary">Kutilayotgan maosh</label>
+          <input type="text" id="salary_expectation" placeholder="5 000 000">
+        </div>
+        <div class="field">
+          <label data-t="l_employment">Bandlik turi</label>
+          <div class="pillgroup" data-group="employment_type">
+            <button type="button" class="pill" data-value-t="emp_full" data-t="emp_full">To'liq</button>
+            <button type="button" class="pill" data-value-t="emp_part" data-t="emp_part">Qisman</button>
+            <button type="button" class="pill" data-value-t="emp_remote" data-t="emp_remote">Masofaviy</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6: About + Photo -->
+    <section class="step" data-step="6">
+      <h2 class="step-title" data-t="s6_title">O'zingiz va rasm</h2>
+      <p class="step-sub" data-t="s6_sub">Yakuniy tafsilotlar</p>
+
+      <div class="field">
+        <label data-t="l_about">O'zingiz haqingizda qisqacha</label>
+        <textarea id="about_me" data-t-ph="ph_about"></textarea>
+      </div>
+      <div class="field">
+        <label data-t="l_photo">3x4 rasm</label>
+        <div class="photo-box">
+          <div class="photo-preview" id="photoPreview">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#5B6B78" stroke-width="1.6"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="#5B6B78" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <div class="photo-text">
+            <strong data-t="photo_title">Rasm yuklang</strong>
+            <span data-t="photo_sub">JPG yoki PNG, aniq ko'rinishli</span>
+            <div><span class="photo-btn" id="photoTrigger" data-t="photo_btn">Rasm tanlash</span></div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" style="display:none">
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 7: Review -->
+    <section class="step" data-step="7">
+      <h2 class="step-title" data-t="s7_title">Tekshirib chiqing</h2>
+      <p class="step-sub" data-t="s7_sub">Yuborishdan oldin ma'lumotlarni ko'rib chiqing</p>
+      <div id="reviewArea"></div>
+    </section>
+
+  </form>
+
+  <div class="done-screen" id="doneScreen">
+    <div class="done-icon">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#8C6420" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 data-t="done_title">Yuborildi!</h2>
+    <p data-t="done_sub">Rezyumeningiz qabul qilindi. Botga qaytishingiz mumkin.</p>
+  </div>
+</div>
+
+<div class="footer" id="footerNav">
+  <div class="footer-inner">
+    <button type="button" class="btn btn-ghost" id="backBtn" data-t="back" disabled>Orqaga</button>
+    <button type="button" class="btn btn-primary" id="nextBtn" data-t="next">Davom etish</button>
+  </div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+/* ---------------- Translations ---------------- */
+const T = {
+  uz: {
+    eyebrow:"REZYUME KONSTRUKTORI", title:"Rezyumeni birga tuzamiz", subtitle:"Bir necha bosqich — va tayyor, chiroyli rezyume sizniki.",
+    s1_title:"Shaxsiy ma'lumotlar", s1_sub:"Kim ekaningiz haqida asosiy ma'lumot",
+    s2_title:"Ta'lim", s2_sub:"O'qish joyingiz va yo'nalishingiz",
+    s3_title:"Ish tajribasi", s3_sub:"Agar ishlamagan bo'lsangiz, \"yo'q\" deb yozing",
+    s4_title:"Ko'nikmalar", s4_sub:"Nimalarni bilasiz?",
+    s5_title:"Aloqa va shartlar", s5_sub:"Siz bilan qanday bog'lanishadi",
+    s6_title:"O'zingiz va rasm", s6_sub:"Yakuniy tafsilotlar",
+    s7_title:"Tekshirib chiqing", s7_sub:"Yuborishdan oldin ma'lumotlarni ko'rib chiqing",
+    l_name:"To'liq F.I.Sh", ph_name:"Valiyev Alijon Alisher o'g'li",
+    l_nat:"Fuqarolik", ph_nat:"O'zbekiston Respublikasi",
+    l_birth:"Tug'ilgan sana", l_city:"Shahar", ph_city:"Toshkent",
+    l_gender:"Jinsi", g_male:"Erkak", g_female:"Ayol",
+    l_married:"Oilaviy holati", ms_single:"Bo'ydoq", ms_married:"Uylangan", ms_divorced:"Ajrashgan",
+    l_edu:"Ma'lumot darajasi", edu_high:"Oliy", edu_sec:"O'rta", edu_specsec:"O'rta maxsus",
+    l_univ:"O'quv yurti", ph_univ:"Toshkent davlat universiteti",
+    l_fac:"Fakultet", ph_fac:"Iqtisodiyot", l_grad:"Bitirgan yili",
+    l_spec:"Mutaxassislik", ph_spec:"Axborot texnologiyalari",
+    l_job:"Lavozim", ph_job:"Buxgalter yoki \"yo'q\"", l_comp:"Kompaniya", ph_comp:"Kompaniya nomi yoki \"yo'q\"",
+    l_period:"Ish davri", l_resp:"Vazifalar", ph_resp:"Hujjat tayyorlash, mijozlar bilan ishlash...",
+    l_pskills:"Kasbiy ko'nikmalar", ph_pskills:"MS Word, Excel, 1C...",
+    l_it:"Kompyuter ko'nikmalari", ph_it:"MS Office, internet",
+    l_lang:"Xorijiy tillar", ph_lang:"Ingliz, rus",
+    l_drive:"Haydovchilik guvohnomasi", l_army:"Harbiy xizmat", yes:"Ha", no:"Yo'q",
+    l_phone:"Telefon raqami", l_email:"Email",
+    l_salary:"Kutilayotgan maosh", l_employment:"Bandlik turi",
+    emp_full:"To'liq", emp_part:"Qisman", emp_remote:"Masofaviy",
+    l_about:"O'zingiz haqingizda qisqacha", ph_about:"1–2 gap yozing",
+    l_photo:"3x4 rasm", photo_title:"Rasm yuklang", photo_sub:"JPG yoki PNG, aniq ko'rinishli", photo_btn:"Rasm tanlash",
+    back:"Orqaga", next:"Davom etish", submit:"Yuborish", err_req:"Bu maydonni to'ldiring", err_choice:"Birini tanlang",
+    done_title:"Yuborildi!", done_sub:"Rezyumeningiz qabul qilindi. Botga qaytishingiz mumkin.",
+    review_personal:"Shaxsiy ma'lumotlar", review_edu:"Ta'lim", review_work:"Ish tajribasi",
+    review_skills:"Ko'nikmalar", review_contact:"Aloqa", review_about:"O'zi haqida", not_filled:"—"
+  },
+  ru: {
+    eyebrow:"КОНСТРУКТОР РЕЗЮМЕ", title:"Соберём резюме вместе", subtitle:"Несколько шагов — и готовое, аккуратное резюме у вас в руках.",
+    s1_title:"Личные данные", s1_sub:"Основная информация о вас",
+    s2_title:"Образование", s2_sub:"Где и чему вы учились",
+    s3_title:"Опыт работы", s3_sub:"Если не работали — напишите «нет»",
+    s4_title:"Навыки", s4_sub:"Что вы умеете?",
+    s5_title:"Контакты и условия", s5_sub:"Как с вами связаться",
+    s6_title:"О себе и фото", s6_sub:"Последние детали",
+    s7_title:"Проверьте данные", s7_sub:"Перед отправкой всё проверьте",
+    l_name:"Полное Ф.И.О.", ph_name:"Иванов Иван Иванович",
+    l_nat:"Гражданство", ph_nat:"Республика Узбекистан",
+    l_birth:"Дата рождения", l_city:"Город", ph_city:"Ташкент",
+    l_gender:"Пол", g_male:"Мужчина", g_female:"Женщина",
+    l_married:"Семейное положение", ms_single:"Холост/не замужем", ms_married:"Женат/замужем", ms_divorced:"Разведён(а)",
+    l_edu:"Уровень образования", edu_high:"Высшее", edu_sec:"Среднее", edu_specsec:"Средне-специальное",
+    l_univ:"Учебное заведение", ph_univ:"Ташкентский государственный университет",
+    l_fac:"Факультет", ph_fac:"Экономика", l_grad:"Год окончания",
+    l_spec:"Специальность", ph_spec:"Информационные технологии",
+    l_job:"Должность", ph_job:"Бухгалтер или «нет»", l_comp:"Компания", ph_comp:"Название компании или «нет»",
+    l_period:"Период работы", l_resp:"Обязанности", ph_resp:"Работа с документами, с клиентами...",
+    l_pskills:"Профессиональные навыки", ph_pskills:"MS Word, Excel, 1C...",
+    l_it:"Компьютерные навыки", ph_it:"MS Office, интернет",
+    l_lang:"Иностранные языки", ph_lang:"Английский, русский",
+    l_drive:"Водительские права", l_army:"Служба в армии", yes:"Да", no:"Нет",
+    l_phone:"Номер телефона", l_email:"Email",
+    l_salary:"Ожидаемая зарплата", l_employment:"Тип занятости",
+    emp_full:"Полная", emp_part:"Частичная", emp_remote:"Удалённая",
+    l_about:"Коротко о себе", ph_about:"1–2 предложения",
+    l_photo:"Фото 3x4", photo_title:"Загрузите фото", photo_sub:"JPG или PNG, чёткое изображение", photo_btn:"Выбрать фото",
+    back:"Назад", next:"Продолжить", submit:"Отправить", err_req:"Заполните это поле", err_choice:"Выберите один вариант",
+    done_title:"Отправлено!", done_sub:"Ваше резюме принято. Можете вернуться в бота.",
+    review_personal:"Личные данные", review_edu:"Образование", review_work:"Опыт работы",
+    review_skills:"Навыки", review_contact:"Контакты", review_about:"О себе", not_filled:"—"
+  }
+};
+
+let lang = (tg?.initDataUnsafe?.start_param === 'ru' || new URLSearchParams(location.search).get('lang') === 'ru') ? 'ru' : 'uz';
+const totalSteps = 7;
+let currentStep = 1;
+const state = { gender:'', marital_status:'', education_level:'', military_service:'', employment_type:'', photoDataUrl:'' };
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const key = el.getAttribute('data-t');
+    if (T[lang][key] !== undefined){
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = T[lang][key];
+      else el.textContent = T[lang][key];
+    }
+  });
+  document.querySelectorAll('[data-t-ph]').forEach(el=>{
+    const key = el.getAttribute('data-t-ph');
+    if (T[lang][key]) el.placeholder = T[lang][key];
+  });
+  document.querySelectorAll('.pill[data-value-t]').forEach(el=>{
+    const key = el.getAttribute('data-value-t');
+    if (T[lang][key]) el.textContent = T[lang][key];
+  });
+  document.getElementById('lang-uz').classList.toggle('active', lang==='uz');
+  document.getElementById('lang-ru').classList.toggle('active', lang==='ru');
+  updateNextLabel();
+  if (currentStep === totalSteps) renderReview();
+}
+document.getElementById('lang-uz').onclick = ()=>{ lang='uz'; applyLang(); };
+document.getElementById('lang-ru').onclick = ()=>{ lang='ru'; applyLang(); };
+
+/* ---------------- Pill groups ---------------- */
+document.querySelectorAll('.pillgroup').forEach(group=>{
+  const key = group.getAttribute('data-group');
+  group.querySelectorAll('.pill').forEach(pill=>{
+    pill.addEventListener('click', ()=>{
+      group.querySelectorAll('.pill').forEach(p=>p.classList.remove('selected'));
+      pill.classList.add('selected');
+      state[key] = pill.getAttribute('data-value') || T[lang][pill.getAttribute('data-value-t')];
+      state[key+'_key'] = pill.getAttribute('data-value-t') || null;
+      group.closest('.field').classList.remove('invalid');
+    });
+  });
+});
+
+/* ---------------- Photo ---------------- */
+document.getElementById('photoTrigger').onclick = ()=> document.getElementById('photoInput').click();
+document.getElementById('photoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    state.photoDataUrl = reader.result;
+    document.getElementById('photoPreview').innerHTML = `<img src="${reader.result}" alt="photo">`;
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ---------------- Navigation ---------------- */
+const backBtn = document.getElementById('backBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+function goToStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.step[data-step="${n}"]`).classList.add('active');
+  currentStep = n;
+  document.getElementById('stepNow').textContent = n;
+  document.getElementById('progressFill').style.width = ((n/totalSteps)*100)+'%';
+  backBtn.disabled = n === 1;
+  updateNextLabel();
+  if (n === totalSteps) renderReview();
+  document.getElementById('formWrap').scrollIntoView({behavior:'instant'});
+  window.scrollTo(0,0);
+}
+function updateNextLabel(){
+  nextBtn.textContent = currentStep === totalSteps ? T[lang].submit : T[lang].next;
+}
+
+const stepRequiredIds = {
+  1: ['full_name','nationality','birth_date','city'],
+  5: ['contact_phone']
+};
+const stepRequiredGroups = { 1:['gender','marital_status'], 2:['education_level'] };
+
+function validateStep(n){
+  let ok = true;
+  (stepRequiredIds[n]||[]).forEach(id=>{
+    const el = document.getElementById(id);
+    const field = el.closest('.field');
+    if (!el.value.trim()){ field.classList.add('invalid'); ok = false; }
+    else field.classList.remove('invalid');
+  });
+  (stepRequiredGroups[n]||[]).forEach(key=>{
+    const group = document.querySelector(`.pillgroup[data-group="${key}"]`);
+    if (!state[key]){ group.closest('.field').classList.add('invalid'); ok = false; }
+    else group.closest('.field').classList.remove('invalid');
+  });
+  return ok;
+}
+
+nextBtn.addEventListener('click', ()=>{
+  if (!validateStep(currentStep)) return;
+  if (currentStep < totalSteps){ goToStep(currentStep+1); }
+  else { submitForm(); }
+});
+backBtn.addEventListener('click', ()=>{ if (currentStep>1) goToStep(currentStep-1); });
+
+/* ---------------- Review ---------------- */
+function fieldVal(id){ const v = document.getElementById(id)?.value.trim(); return v ? v : T[lang].not_filled; }
+
+function renderReview(){
+  const groups = [
+    { label:T[lang].review_personal, rows:[
+      [T[lang].l_name, fieldVal('full_name')], [T[lang].l_nat, fieldVal('nationality')],
+      [T[lang].l_birth, fieldVal('birth_date')], [T[lang].l_city, fieldVal('city')],
+      [T[lang].l_gender, state.gender || T[lang].not_filled],
+      [T[lang].l_married, state.marital_status || T[lang].not_filled]
+    ]},
+    { label:T[lang].review_edu, rows:[
+      [T[lang].l_edu, state.education_level || T[lang].not_filled], [T[lang].l_univ, fieldVal('university')],
+      [T[lang].l_fac, fieldVal('faculty')], [T[lang].l_grad, fieldVal('graduation_year')], [T[lang].l_spec, fieldVal('specialty')]
+    ]},
+    { label:T[lang].review_work, rows:[
+      [T[lang].l_job, fieldVal('job_title')], [T[lang].l_comp, fieldVal('company_name')],
+      [T[lang].l_period, fieldVal('work_period')], [T[lang].l_resp, fieldVal('responsibilities')]
+    ]},
+    { label:T[lang].review_skills, rows:[
+      [T[lang].l_pskills, fieldVal('professional_skills')], [T[lang].l_it, fieldVal('computer_skills')],
+      [T[lang].l_lang, fieldVal('languages')], [T[lang].l_drive, fieldVal('driver_license')],
+      [T[lang].l_army, state.military_service || T[lang].not_filled]
+    ]},
+    { label:T[lang].review_contact, rows:[
+      [T[lang].l_phone, fieldVal('contact_phone')], [T[lang].l_email, fieldVal('contact_email')],
+      [T[lang].l_salary, fieldVal('salary_expectation')], [T[lang].l_employment, state.employment_type || T[lang].not_filled]
+    ]},
+    { label:T[lang].review_about, rows:[ [T[lang].l_about, fieldVal('about_me')] ] }
+  ];
+  const area = document.getElementById('reviewArea');
+  area.innerHTML = groups.map(g=>`
+    <div class="review-section-label">${g.label}</div>
+    <div class="review-card">
+      ${g.rows.map(([k,v])=>`<div class="review-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+    </div>`).join('');
+}
+
+/* ---------------- Submit ---------------- */
+function submitForm(){
+  const payload = {
+    type: 'resume',
+    lang,
+    full_name: document.getElementById('full_name').value.trim(),
+    nationality: document.getElementById('nationality').value.trim(),
+    birth_date: document.getElementById('birth_date').value,
+    city: document.getElementById('city').value.trim(),
+    gender: state.gender || '',
+    marital_status: state.marital_status || '',
+    education_level: state.education_level || '',
+    university: document.getElementById('university').value.trim(),
+    faculty: document.getElementById('faculty').value.trim(),
+    graduation_year: document.getElementById('graduation_year').value.trim(),
+    specialty: document.getElementById('specialty').value.trim(),
+    job_title: document.getElementById('job_title').value.trim(),
+    company_name: document.getElementById('company_name').value.trim(),
+    work_period: document.getElementById('work_period').value.trim(),
+    responsibilities: document.getElementById('responsibilities').value.trim(),
+    professional_skills: document.getElementById('professional_skills').value.trim(),
+    computer_skills: document.getElementById('computer_skills').value.trim(),
+    languages: document.getElementById('languages').value.trim(),
+    driver_license: document.getElementById('driver_license').value.trim(),
+    military_service: state.military_service || '',
+    contact_phone: document.getElementById('contact_phone').value.trim(),
+    contact_email: document.getElementById('contact_email').value.trim(),
+    salary_expectation: document.getElementById('salary_expectation').value.trim(),
+    employment_type: state.employment_type || '',
+    about_me: document.getElementById('about_me').value.trim(),
+    photo_base64: state.photoDataUrl || ''
+  };
+
+  document.getElementById('formWrap').querySelectorAll('form, .head, .progress-row').forEach(el=>el.style.display='none');
+  document.getElementById('doneScreen').classList.add('active');
+  document.getElementById('footerNav').style.display = 'none';
+
+  if (tg){
+    tg.MainButton?.hide();
+    try{ tg.sendData(JSON.stringify(payload)); }catch(e){ console.error(e); }
+    setTimeout(()=>tg.close(), 1400);
+  } else {
+    console.log('Payload (no Telegram context):', payload);
+  }
+}
+
+applyLang();
+</script>
+</body>
+</html>
