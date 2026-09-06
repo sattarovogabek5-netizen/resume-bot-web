@@ -6,22 +6,24 @@
 <title>Obyektivka</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#EEF2F0;
+    --paper:#FBF1DC;
     --surface:#FFFFFF;
-    --ink:#16283A;
-    --ink-soft:#5B6B78;
-    --ink-faint:#93A0A9;
-    --brass:#B8842E;
-    --brass-deep:#8C6420;
-    --brass-tint:#F4E9D6;
-    --navy:#16283A;
-    --line:#DCE3DE;
-    --error:#B23A34;
+    --ink:#23201B;
+    --ink-soft:#6E6153;
+    --ink-faint:#AB9D85;
+    --brass:#F2A007;
+    --brass-deep:#C97F00;
+    --brass-tint:#FCEACB;
+    --pomegranate:#D6484F;
+    --navy:#0F2A3D;
+    --line:#EBDFC1;
+    --error:#C43D3D;
     --radius:14px;
-    --font-display:'PT Serif', Georgia, serif;
+    --grad:linear-gradient(135deg, var(--brass), var(--pomegranate));
+    --font-display:'Fraunces', Georgia, serif;
     --font-body:'Manrope', system-ui, -apple-system, sans-serif;
   }
   *{box-sizing:border-box;}
@@ -49,13 +51,26 @@
     content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;
     border:1.5px solid rgba(244,233,214,.18);border-radius:50%;
   }
-  .doc-banner .eyebrow{font-size:12px;letter-spacing:.03em;color:var(--brass-tint);font-weight:700;margin:0 0 6px;opacity:.85;}
+  .doc-banner .eyebrow{font-size:12px;letter-spacing:.03em;color:var(--brass);font-weight:700;margin:0 0 6px;opacity:.9;}
   .doc-banner h1{font-family:var(--font-display);font-size:24px;font-weight:700;margin:0 0 6px;line-height:1.2;}
   .doc-banner p{margin:0;font-size:13px;color:#C9D2CE;line-height:1.5;max-width:34ch;}
+  .accent-scribble{display:block;margin:2px 0 12px;width:104px;height:9px;}
+  .accent-scribble path{fill:none;stroke:var(--brass);stroke-width:3;stroke-linecap:round;}
+
+  /* Greeting */
+  .greet-row{display:flex;align-items:center;gap:11px;margin-bottom:14px;position:relative;z-index:1;}
+  .greet-avatar{
+    width:40px;height:40px;border-radius:50%;background:var(--grad);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;
+    font-family:var(--font-display);font-weight:700;font-size:16.5px;
+    box-shadow:0 4px 14px rgba(214,72,79,.35);
+  }
+  .greet-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .greet-hello{margin:0;font-family:var(--font-display);font-weight:600;font-size:15px;color:#F3EFE6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
   .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
   .progress-track{flex:1;height:4px;background:var(--line);border-radius:4px;overflow:hidden;}
-  .progress-fill{height:100%;background:var(--brass);border-radius:4px;transition:width .35s ease;}
+  .progress-fill{height:100%;background:var(--grad);border-radius:4px;transition:width .35s ease;}
   .progress-label{font-size:12.5px;color:var(--ink-soft);font-weight:700;white-space:nowrap;}
 
   .step{display:none;animation:rise .28s ease;}
@@ -82,12 +97,7 @@
   .field.invalid .error-msg{display:block;}
 
   /* Photo */
-  .photo-box{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px dashed var(--line);border-radius:var(--radius);padding:14px;}
-  .photo-preview{width:64px;height:80px;border-radius:8px;background:var(--paper);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid var(--line);}
-  .photo-preview img{width:100%;height:100%;object-fit:cover;}
-  .photo-text strong{display:block;font-size:14px;margin-bottom:2px;}
-  .photo-text span{font-size:12.5px;color:var(--ink-soft);}
-  .photo-btn{margin-top:8px;display:inline-block;font-size:12.5px;font-weight:700;color:var(--brass-deep);background:var(--brass-tint);padding:6px 12px;border-radius:20px;cursor:pointer;}
+  .photo-note{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px dashed var(--line);border-radius:var(--radius);padding:14px;font-size:12.5px;color:var(--ink-soft);line-height:1.4;}
 
   /* Dynamic list cards (work history / relatives) */
   .entry-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 4px;margin-bottom:12px;position:relative;}
@@ -114,7 +124,7 @@
   .footer-inner{max-width:540px;margin:0 auto;display:flex;gap:10px;}
   .btn{flex:1;border:none;border-radius:12px;padding:14px 18px;font-family:var(--font-body);font-weight:700;font-size:15px;cursor:pointer;transition:transform .1s,opacity .15s;}
   .btn:active{transform:scale(.98);}
-  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary{background:var(--navy);color:#fff;box-shadow:0 6px 16px rgba(15,42,61,.28);}
   .btn-ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);flex:0 0 auto;padding:14px 20px;}
 
   .done-screen{display:none;text-align:center;padding:60px 20px;}
@@ -133,8 +143,13 @@
   </div>
 
   <div class="doc-banner">
+    <div class="greet-row">
+      <div class="greet-avatar" id="greetAvatar">✦</div>
+      <p class="greet-hello" id="greetHello">Salom!</p>
+    </div>
     <p class="eyebrow" data-t="eyebrow">RASMIY HUJJAT</p>
     <h1 data-t="title">Ma'lumotnoma (Obyektivka)</h1>
+    <svg class="accent-scribble" viewBox="0 0 104 9" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 5.8C18 1.8 30 8 46 4.8S76 1 102 4.5"/></svg>
     <p data-t="subtitle">Shaxsiy ma'lumotlaringizni rasmiy shablon bo'yicha to'ldiring.</p>
   </div>
 
@@ -152,16 +167,9 @@
 
       <div class="field">
         <label data-t="l_photo">Rasm</label>
-        <div class="photo-box">
-          <div class="photo-preview" id="photoPreview">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#5B6B78" stroke-width="1.6"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="#5B6B78" stroke-width="1.6" stroke-linecap="round"/></svg>
-          </div>
-          <div class="photo-text">
-            <strong data-t="photo_title">Rasm yuklang</strong>
-            <span data-t="photo_sub">3x4, aniq ko'rinishli</span>
-            <div><span class="photo-btn" id="photoTrigger" data-t="photo_btn">Rasm tanlash</span></div>
-          </div>
-          <input type="file" id="photoInput" accept="image/*" style="display:none">
+        <div class="photo-note">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><circle cx="12" cy="8" r="4" stroke="#5B6B78" stroke-width="1.6"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="#5B6B78" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span data-t="photo_note">Rasmni bu yerda yuklash shart emas — formani yakunlagach, bot sizdan rasmni alohida xabar sifatida so'raydi.</span>
         </div>
       </div>
       <div class="field">
@@ -278,7 +286,7 @@
 
   <div class="done-screen" id="doneScreen">
     <div class="done-icon">
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#8C6420" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#C97F00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <h2 data-t="done_title">Yuborildi!</h2>
     <p data-t="done_sub">Ma'lumotnomangiz qabul qilindi. Botga qaytishingiz mumkin.</p>
@@ -305,7 +313,7 @@ const T = {
     s4_title:"Mehnat faoliyati", s4_sub:"Ish davrlaringizni qo'shing",
     s5_title:"Yaqin qarindoshlari", s5_sub:"Ota, ona va boshqa yaqinlaringiz haqida ma'lumot",
     s6_title:"Tekshirib chiqing", s6_sub:"Yuborishdan oldin ma'lumotlarni ko'rib chiqing",
-    l_photo:"Rasm", photo_title:"Rasm yuklang", photo_sub:"3x4, aniq ko'rinishli", photo_btn:"Rasm tanlash",
+    l_photo:"Rasm", photo_note:"Rasmni bu yerda yuklash shart emas — formani yakunlagach, bot sizdan rasmni alohida xabar sifatida so'raydi.",
     l_name:"To'liq F.I.Sh", ph_name:"Valiyev Alijon Alisher o'g'li",
     l_status:"Hozirgi lavozimi / mavqei", ph_status:"Toshkent transport universiteti, mexanika fakulteti, 1-bosqich talabasi",
     l_birthyear:"Tug'ilgan yili", l_birthplace:"Tug'ilgan joyi", ph_birthplace:"Toshkent shahar",
@@ -336,7 +344,7 @@ const T = {
     s4_title:"Трудовая деятельность", s4_sub:"Добавьте периоды работы",
     s5_title:"Близкие родственники", s5_sub:"Сведения о родителях и других родственниках",
     s6_title:"Проверьте данные", s6_sub:"Перед отправкой всё проверьте",
-    l_photo:"Фото", photo_title:"Загрузите фото", photo_sub:"3x4, чёткое изображение", photo_btn:"Выбрать фото",
+    l_photo:"Фото", photo_note:"Загружать фото здесь не нужно — после завершения формы бот попросит вас отправить фото отдельным сообщением.",
     l_name:"Полное Ф.И.О.", ph_name:"Иванов Иван Иванович",
     l_status:"Текущая должность / статус", ph_status:"Ташкентский транспортный университет, студент 1 курса",
     l_birthyear:"Год рождения", l_birthplace:"Место рождения", ph_birthplace:"г. Ташкент",
@@ -364,12 +372,31 @@ const T = {
 let lang = (tg?.initDataUnsafe?.start_param === 'ru' || new URLSearchParams(location.search).get('lang') === 'ru') ? 'ru' : 'uz';
 const totalSteps = 6;
 let currentStep = 1;
-const state = { education_level:'', photoDataUrl:'' };
+const state = { education_level:'' };
 let workEntries = [];
 let relEntries = [];
 let workSeq = 0, relSeq = 0;
 
 const RELATION_KEYS = ['rel_father','rel_mother','rel_brother_e','rel_brother_y','rel_sister_e','rel_sister_y','rel_son','rel_daughter','rel_father_in_law','rel_mother_in_law','rel_spouse','rel_other'];
+
+/* ---------------- Greeting (Telegram user) ---------------- */
+const tgUser = tg?.initDataUnsafe?.user;
+function updateGreeting(){
+  // Telegram usernemi mavjud bo'lsa, salomlashuvda shu ko'rsatiladi
+  const name = tgUser?.username ? '@'+tgUser.username : (tgUser?.first_name || '');
+  const helloWord = lang === 'ru' ? 'Привет' : 'Salom';
+  const helloEl = document.getElementById('greetHello');
+  if (helloEl) helloEl.textContent = name ? `${helloWord}, ${name}! 👋` : `${helloWord}! 👋`;
+  const avatarEl = document.getElementById('greetAvatar');
+  if (avatarEl){
+    if (tgUser?.photo_url){
+      avatarEl.innerHTML = `<img src="${tgUser.photo_url}" alt="">`;
+    } else {
+      const letter = (tgUser?.first_name?.[0] || tgUser?.username?.[0] || '✦');
+      avatarEl.textContent = letter.toUpperCase();
+    }
+  }
+}
 
 function applyLang(){
   document.documentElement.lang = lang;
@@ -390,6 +417,7 @@ function applyLang(){
   });
   document.getElementById('lang-uz').classList.toggle('active', lang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', lang==='ru');
+  updateGreeting();
   updateNextLabel();
   renderWorkList();
   renderRelList();
@@ -419,18 +447,7 @@ document.addEventListener('click', (e)=>{
   }
 });
 
-/* Photo */
-document.getElementById('photoTrigger').onclick = ()=> document.getElementById('photoInput').click();
-document.getElementById('photoInput').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    state.photoDataUrl = reader.result;
-    document.getElementById('photoPreview').innerHTML = `<img src="${reader.result}" alt="photo">`;
-  };
-  reader.readAsDataURL(file);
-});
+/* Photo — endi bu yerda yuklanmaydi, botga alohida xabar sifatida yuboriladi */
 
 /* Work entries */
 function addWorkEntry(){
@@ -640,8 +657,12 @@ function submitForm(){
     awards: document.getElementById('awards').value.trim(),
     deputy_info: document.getElementById('deputy_info').value.trim(),
     work_history: workEntries.map(w=>({ period:w.period, position:w.position })),
-    relatives: relEntries.map(r=>({ relation:T[lang][r.relationKey], name:r.name, birth:r.birth, work:r.work, address:r.address })),
-    photo_base64: state.photoDataUrl || ''
+    relatives: relEntries.map(r=>({ relation:T[lang][r.relationKey], name:r.name, birth:r.birth, work:r.work, address:r.address }))
+    // Eslatma: rasm bu yerda YUBORILMAYDI — Telegram WebApp'ning
+    // sendData() metodi 4096 baytdan katta ma'lumotni qabul qilmaydi,
+    // rasm esa deyarli har doim bundan kattaroq bo'ladi. Shu sababli
+    // forma yuborilgach, bot foydalanuvchidan rasmni ODDIY fotosurat
+    // sifatida alohida xabar qilib yuborishni so'raydi.
   };
 
   document.getElementById('formWrap').querySelectorAll('form, .doc-banner, .progress-row').forEach(el=>el.style.display='none');

@@ -6,22 +6,25 @@
 <title>Rezyume</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#EEF2F0;
+    --paper:#FBF1DC;
     --surface:#FFFFFF;
-    --ink:#16283A;
-    --ink-soft:#5B6B78;
-    --ink-faint:#93A0A9;
-    --brass:#B8842E;
-    --brass-deep:#8C6420;
-    --brass-tint:#F4E9D6;
-    --line:#DCE3DE;
-    --error:#B23A34;
-    --success:#3B7A57;
+    --ink:#23201B;
+    --ink-soft:#6E6153;
+    --ink-faint:#AB9D85;
+    --brass:#0E7C7A;
+    --brass-deep:#0A5D5B;
+    --brass-tint:#DEF0EC;
+    --marigold:#F2A007;
+    --pomegranate:#D6484F;
+    --line:#EBDFC1;
+    --error:#C43D3D;
+    --success:#1F8A5F;
     --radius:14px;
-    --font-display:'PT Serif', Georgia, serif;
+    --grad:linear-gradient(135deg, var(--marigold), var(--pomegranate));
+    --font-display:'Fraunces', Georgia, serif;
     --font-body:'Manrope', system-ui, -apple-system, sans-serif;
   }
   *{box-sizing:border-box;}
@@ -54,16 +57,33 @@
     margin:0 0 6px;color:var(--ink);
   }
   .head p{margin:0;color:var(--ink-soft);font-size:14.5px;line-height:1.5;max-width:38ch;}
+  .accent-scribble{display:block;margin:-4px 0 12px;width:118px;height:10px;}
+  .accent-scribble path{fill:none;stroke:var(--pomegranate);stroke-width:3;stroke-linecap:round;}
+
+  /* Greeting */
+  .greet-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .greet-avatar{
+    width:46px;height:46px;border-radius:50%;background:var(--grad);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    font-family:var(--font-display);font-weight:700;font-size:19px;
+    box-shadow:0 4px 14px rgba(214,72,79,.32);
+    overflow:hidden;
+  }
+  .greet-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .greet-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .greet-hello{margin:0;font-family:var(--font-display);font-weight:700;font-size:16.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .greet-sub{margin:0;font-size:12px;color:var(--brass-deep);font-weight:700;letter-spacing:.02em;}
 
   /* Progress */
   .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
   .progress-track{flex:1;height:4px;background:var(--line);border-radius:4px;overflow:hidden;}
-  .progress-fill{height:100%;background:var(--brass);border-radius:4px;transition:width .35s ease;}
+  .progress-fill{height:100%;background:var(--grad);border-radius:4px;transition:width .35s ease;}
   .progress-label{font-size:12.5px;color:var(--ink-soft);font-weight:700;white-space:nowrap;}
 
   /* Steps */
   .step{display:none;animation:rise .28s ease;}
   .step.active{display:block;}
+  .edu-block,.work-block{animation:rise .25s ease;}
   @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
   .step-title{font-family:var(--font-display);font-size:20px;font-weight:700;margin:0 0 3px;}
@@ -87,29 +107,19 @@
   .pill{
     border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);
     font-family:var(--font-body);font-weight:600;font-size:13.5px;
-    padding:9px 15px;border-radius:24px;cursor:pointer;transition:.15s;
+    padding:9px 15px;border-radius:24px;cursor:pointer;transition:.15s,transform .15s;
   }
+  .pill:hover{border-color:var(--brass);color:var(--brass-deep);transform:translateY(-1px);}
   .pill.selected{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .pill.selected:hover{transform:none;color:#fff;}
 
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
   /* Photo */
-  .photo-box{
-    display:flex;align-items:center;gap:14px;background:var(--surface);
+  .photo-note{
+    display:flex;align-items:center;gap:12px;background:var(--surface);
     border:1.5px dashed var(--line);border-radius:var(--radius);padding:14px;
-  }
-  .photo-preview{
-    width:64px;height:80px;border-radius:8px;background:var(--paper);
-    display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;
-    border:1px solid var(--line);
-  }
-  .photo-preview img{width:100%;height:100%;object-fit:cover;}
-  .photo-preview svg{opacity:.35;}
-  .photo-text strong{display:block;font-size:14px;margin-bottom:2px;}
-  .photo-text span{font-size:12.5px;color:var(--ink-soft);}
-  .photo-btn{
-    margin-top:8px;display:inline-block;font-size:12.5px;font-weight:700;color:var(--brass-deep);
-    background:var(--brass-tint);padding:6px 12px;border-radius:20px;cursor:pointer;
+    font-size:12.5px;color:var(--ink-soft);line-height:1.4;
   }
 
   /* Review */
@@ -132,8 +142,8 @@
     font-weight:700;font-size:15px;cursor:pointer;transition:transform .1s,opacity .15s;
   }
   .btn:active{transform:scale(.98);}
-  .btn-primary{background:var(--ink);color:#fff;}
-  .btn-primary:disabled{opacity:.35;}
+  .btn-primary{background:var(--ink);color:#fff;box-shadow:0 6px 16px rgba(35,32,27,.18);}
+  .btn-primary:disabled{opacity:.35;box-shadow:none;}
   .btn-ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);flex:0 0 auto;padding:14px 20px;}
 
   .error-msg{color:var(--error);font-size:12.5px;margin-top:5px;display:none;}
@@ -156,8 +166,15 @@
   </div>
 
   <div class="head">
-    <p class="eyebrow" data-t="eyebrow">REZYUME KONSTRUKTORI</p>
+    <div class="greet-row">
+      <div class="greet-avatar" id="greetAvatar">✦</div>
+      <div class="greet-text">
+        <p class="greet-hello" id="greetHello">Salom!</p>
+        <p class="greet-sub" data-t="eyebrow">REZYUME KONSTRUKTORI</p>
+      </div>
+    </div>
     <h1 data-t="title">Rezyumeni birga tuzamiz</h1>
+    <svg class="accent-scribble" viewBox="0 0 118 10" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 6.5C20 2 34 9 52 5.5S86 1 116 5"/></svg>
     <p data-t="subtitle">Bir necha bosqich — va tayyor, chiroyli rezyume sizniki.</p>
   </div>
 
@@ -228,48 +245,113 @@
         </div>
         <div class="error-msg" data-t="err_choice">Birini tanlang</div>
       </div>
-      <div class="field">
-        <label data-t="l_univ">O'quv yurti</label>
-        <input type="text" id="university" data-t-ph="ph_univ">
-      </div>
-      <div class="row2">
+
+      <!-- Oliy (higher education) -->
+      <div class="edu-block" data-edu-block="edu_high" style="display:none;">
         <div class="field">
-          <label data-t="l_fac">Fakultet</label>
-          <input type="text" id="faculty" data-t-ph="ph_fac">
+          <label data-t="l_univ">O'quv yurti</label>
+          <input type="text" id="university" data-t-ph="ph_univ">
+          <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label data-t="l_fac">Fakultet</label>
+            <input type="text" id="faculty" data-t-ph="ph_fac">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
+          <div class="field">
+            <label data-t="l_grad">Bitirgan yili</label>
+            <input type="number" id="grad_year_high" min="1960" max="2035" placeholder="2024">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
         </div>
         <div class="field">
-          <label data-t="l_grad">Bitirgan yili</label>
-          <input type="number" id="graduation_year" min="1960" max="2035" placeholder="2024">
+          <label data-t="l_spec">Mutaxassislik</label>
+          <input type="text" id="specialty_high" data-t-ph="ph_spec">
+          <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
         </div>
       </div>
-      <div class="field">
-        <label data-t="l_spec">Mutaxassislik</label>
-        <input type="text" id="specialty" data-t-ph="ph_spec">
+
+      <!-- O'rta (secondary school) -->
+      <div class="edu-block" data-edu-block="edu_sec" style="display:none;">
+        <div class="row2">
+          <div class="field">
+            <label data-t="l_school">Maktab raqami</label>
+            <input type="text" id="school_number" data-t-ph="ph_school">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
+          <div class="field">
+            <label data-t="l_grad">Bitirgan yili</label>
+            <input type="number" id="grad_year_sec" min="1960" max="2035" placeholder="2024">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
+        </div>
+        <div class="field">
+          <label data-t="l_district">Qaysi shahar/tuman</label>
+          <input type="text" id="city_district" data-t-ph="ph_district">
+          <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+        </div>
+      </div>
+
+      <!-- O'rta maxsus (college) -->
+      <div class="edu-block" data-edu-block="edu_specsec" style="display:none;">
+        <div class="field">
+          <label data-t="l_college">Kollej nomi</label>
+          <input type="text" id="college_name" data-t-ph="ph_college">
+          <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label data-t="l_grad">Bitirgan yili</label>
+            <input type="number" id="grad_year_specsec" min="1960" max="2035" placeholder="2024">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
+          <div class="field">
+            <label data-t="l_spec">Mutaxassislik</label>
+            <input type="text" id="specialty_specsec" data-t-ph="ph_spec">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- STEP 3: Work -->
     <section class="step" data-step="3">
       <h2 class="step-title" data-t="s3_title">Ish tajribasi</h2>
-      <p class="step-sub" data-t="s3_sub">Agar ishlamagan bo'lsangiz, "yo'q" deb yozing</p>
+      <p class="step-sub" data-t="s3_sub">Ishlaganmisiz? Tanlang va kerak bo'lsa tafsilotlarni to'ldiring</p>
 
-      <div class="row2">
-        <div class="field">
-          <label data-t="l_job">Lavozim</label>
-          <input type="text" id="job_title" data-t-ph="ph_job">
+      <div class="field">
+        <label data-t="l_has_work">Ish tajribangiz bormi?</label>
+        <div class="pillgroup" data-group="has_work_experience">
+          <button type="button" class="pill" data-value-t="hw_yes" data-t="hw_yes">Ha, bor</button>
+          <button type="button" class="pill" data-value-t="hw_no" data-t="hw_no">Yo'q</button>
+        </div>
+        <div class="error-msg" data-t="err_choice">Birini tanlang</div>
+      </div>
+
+      <div class="work-block" id="workFieldsBlock" style="display:none;">
+        <div class="row2">
+          <div class="field">
+            <label data-t="l_job">Lavozim</label>
+            <input type="text" id="job_title" data-t-ph="ph_job">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
+          <div class="field">
+            <label data-t="l_comp">Kompaniya</label>
+            <input type="text" id="company_name" data-t-ph="ph_comp">
+            <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+          </div>
         </div>
         <div class="field">
-          <label data-t="l_comp">Kompaniya</label>
-          <input type="text" id="company_name" data-t-ph="ph_comp">
+          <label data-t="l_period">Ish davri</label>
+          <input type="text" id="work_period" placeholder="2020 — 2022">
+          <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
         </div>
-      </div>
-      <div class="field">
-        <label data-t="l_period">Ish davri</label>
-        <input type="text" id="work_period" placeholder="2020 — 2022">
-      </div>
-      <div class="field">
-        <label data-t="l_resp">Vazifalar</label>
-        <textarea id="responsibilities" data-t-ph="ph_resp"></textarea>
+        <div class="field">
+          <label data-t="l_resp">Vazifalar</label>
+          <textarea id="responsibilities" data-t-ph="ph_resp"></textarea>
+          <div class="error-msg" data-t="err_req">Bu maydonni to'ldiring</div>
+        </div>
       </div>
     </section>
 
@@ -346,16 +428,9 @@
       </div>
       <div class="field">
         <label data-t="l_photo">3x4 rasm</label>
-        <div class="photo-box">
-          <div class="photo-preview" id="photoPreview">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#5B6B78" stroke-width="1.6"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="#5B6B78" stroke-width="1.6" stroke-linecap="round"/></svg>
-          </div>
-          <div class="photo-text">
-            <strong data-t="photo_title">Rasm yuklang</strong>
-            <span data-t="photo_sub">JPG yoki PNG, aniq ko'rinishli</span>
-            <div><span class="photo-btn" id="photoTrigger" data-t="photo_btn">Rasm tanlash</span></div>
-          </div>
-          <input type="file" id="photoInput" accept="image/*" style="display:none">
+        <div class="photo-note">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><circle cx="12" cy="8" r="4" stroke="#5B6B78" stroke-width="1.6"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="#5B6B78" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span data-t="photo_note">Rasmni bu yerda yuklash shart emas — formani yakunlagach, bot sizdan rasmni alohida xabar sifatida so'raydi.</span>
         </div>
       </div>
     </section>
@@ -371,7 +446,7 @@
 
   <div class="done-screen" id="doneScreen">
     <div class="done-icon">
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#8C6420" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0A5D5B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <h2 data-t="done_title">Yuborildi!</h2>
     <p data-t="done_sub">Rezyumeningiz qabul qilindi. Botga qaytishingiz mumkin.</p>
@@ -395,7 +470,7 @@ const T = {
     eyebrow:"REZYUME KONSTRUKTORI", title:"Rezyumeni birga tuzamiz", subtitle:"Bir necha bosqich — va tayyor, chiroyli rezyume sizniki.",
     s1_title:"Shaxsiy ma'lumotlar", s1_sub:"Kim ekaningiz haqida asosiy ma'lumot",
     s2_title:"Ta'lim", s2_sub:"O'qish joyingiz va yo'nalishingiz",
-    s3_title:"Ish tajribasi", s3_sub:"Agar ishlamagan bo'lsangiz, \"yo'q\" deb yozing",
+    s3_title:"Ish tajribasi", s3_sub:"Ishlaganmisiz? Tanlang va kerak bo'lsa tafsilotlarni to'ldiring",
     s4_title:"Ko'nikmalar", s4_sub:"Nimalarni bilasiz?",
     s5_title:"Aloqa va shartlar", s5_sub:"Siz bilan qanday bog'lanishadi",
     s6_title:"O'zingiz va rasm", s6_sub:"Yakuniy tafsilotlar",
@@ -409,7 +484,11 @@ const T = {
     l_univ:"O'quv yurti", ph_univ:"Toshkent davlat universiteti",
     l_fac:"Fakultet", ph_fac:"Iqtisodiyot", l_grad:"Bitirgan yili",
     l_spec:"Mutaxassislik", ph_spec:"Axborot texnologiyalari",
-    l_job:"Lavozim", ph_job:"Buxgalter yoki \"yo'q\"", l_comp:"Kompaniya", ph_comp:"Kompaniya nomi yoki \"yo'q\"",
+    l_school:"Maktab raqami", ph_school:"21-maktab",
+    l_district:"Qaysi shahar/tuman", ph_district:"Toshkent shahar, Chilonzor tumani",
+    l_college:"Kollej nomi", ph_college:"Toshkent kasb-hunar kolleji",
+    l_has_work:"Ish tajribangiz bormi?", hw_yes:"Ha, bor", hw_no:"Yo'q",
+    l_job:"Lavozim", ph_job:"Buxgalter", l_comp:"Kompaniya", ph_comp:"Kompaniya nomi",
     l_period:"Ish davri", l_resp:"Vazifalar", ph_resp:"Hujjat tayyorlash, mijozlar bilan ishlash...",
     l_pskills:"Kasbiy ko'nikmalar", ph_pskills:"MS Word, Excel, 1C...",
     l_it:"Kompyuter ko'nikmalari", ph_it:"MS Office, internet",
@@ -419,7 +498,7 @@ const T = {
     l_salary:"Kutilayotgan maosh", l_employment:"Bandlik turi",
     emp_full:"To'liq", emp_part:"Qisman", emp_remote:"Masofaviy",
     l_about:"O'zingiz haqingizda qisqacha", ph_about:"1–2 gap yozing",
-    l_photo:"3x4 rasm", photo_title:"Rasm yuklang", photo_sub:"JPG yoki PNG, aniq ko'rinishli", photo_btn:"Rasm tanlash",
+    l_photo:"3x4 rasm", photo_note:"Rasmni bu yerda yuklash shart emas — formani yakunlagach, bot sizdan rasmni alohida xabar sifatida so'raydi.",
     back:"Orqaga", next:"Davom etish", submit:"Yuborish", err_req:"Bu maydonni to'ldiring", err_choice:"Birini tanlang",
     done_title:"Yuborildi!", done_sub:"Rezyumeningiz qabul qilindi. Botga qaytishingiz mumkin.",
     review_personal:"Shaxsiy ma'lumotlar", review_edu:"Ta'lim", review_work:"Ish tajribasi",
@@ -429,7 +508,7 @@ const T = {
     eyebrow:"КОНСТРУКТОР РЕЗЮМЕ", title:"Соберём резюме вместе", subtitle:"Несколько шагов — и готовое, аккуратное резюме у вас в руках.",
     s1_title:"Личные данные", s1_sub:"Основная информация о вас",
     s2_title:"Образование", s2_sub:"Где и чему вы учились",
-    s3_title:"Опыт работы", s3_sub:"Если не работали — напишите «нет»",
+    s3_title:"Опыт работы", s3_sub:"Работали ли вы? Выберите и при необходимости заполните детали",
     s4_title:"Навыки", s4_sub:"Что вы умеете?",
     s5_title:"Контакты и условия", s5_sub:"Как с вами связаться",
     s6_title:"О себе и фото", s6_sub:"Последние детали",
@@ -443,7 +522,11 @@ const T = {
     l_univ:"Учебное заведение", ph_univ:"Ташкентский государственный университет",
     l_fac:"Факультет", ph_fac:"Экономика", l_grad:"Год окончания",
     l_spec:"Специальность", ph_spec:"Информационные технологии",
-    l_job:"Должность", ph_job:"Бухгалтер или «нет»", l_comp:"Компания", ph_comp:"Название компании или «нет»",
+    l_school:"Номер школы", ph_school:"Школа №21",
+    l_district:"Город/район", ph_district:"г. Ташкент, Чиланзарский район",
+    l_college:"Название колледжа", ph_college:"Ташкентский профессиональный колледж",
+    l_has_work:"Есть ли у вас опыт работы?", hw_yes:"Да, есть", hw_no:"Нет",
+    l_job:"Должность", ph_job:"Бухгалтер", l_comp:"Компания", ph_comp:"Название компании",
     l_period:"Период работы", l_resp:"Обязанности", ph_resp:"Работа с документами, с клиентами...",
     l_pskills:"Профессиональные навыки", ph_pskills:"MS Word, Excel, 1C...",
     l_it:"Компьютерные навыки", ph_it:"MS Office, интернет",
@@ -453,7 +536,7 @@ const T = {
     l_salary:"Ожидаемая зарплата", l_employment:"Тип занятости",
     emp_full:"Полная", emp_part:"Частичная", emp_remote:"Удалённая",
     l_about:"Коротко о себе", ph_about:"1–2 предложения",
-    l_photo:"Фото 3x4", photo_title:"Загрузите фото", photo_sub:"JPG или PNG, чёткое изображение", photo_btn:"Выбрать фото",
+    l_photo:"Фото 3x4", photo_note:"Загружать фото здесь не нужно — после завершения формы бот попросит вас отправить фото отдельным сообщением.",
     back:"Назад", next:"Продолжить", submit:"Отправить", err_req:"Заполните это поле", err_choice:"Выберите один вариант",
     done_title:"Отправлено!", done_sub:"Ваше резюме принято. Можете вернуться в бота.",
     review_personal:"Личные данные", review_edu:"Образование", review_work:"Опыт работы",
@@ -464,7 +547,26 @@ const T = {
 let lang = (tg?.initDataUnsafe?.start_param === 'ru' || new URLSearchParams(location.search).get('lang') === 'ru') ? 'ru' : 'uz';
 const totalSteps = 7;
 let currentStep = 1;
-const state = { gender:'', marital_status:'', education_level:'', military_service:'', employment_type:'', photoDataUrl:'' };
+const state = { gender:'', marital_status:'', education_level:'', military_service:'', employment_type:'', has_work_experience:'' };
+
+/* ---------------- Greeting (Telegram user) ---------------- */
+const tgUser = tg?.initDataUnsafe?.user;
+function updateGreeting(){
+  // Telegram usernemi mavjud bo'lsa, salomlashuvda shu ko'rsatiladi
+  const name = tgUser?.username ? '@'+tgUser.username : (tgUser?.first_name || '');
+  const helloWord = lang === 'ru' ? 'Привет' : 'Salom';
+  const helloEl = document.getElementById('greetHello');
+  if (helloEl) helloEl.textContent = name ? `${helloWord}, ${name}! 👋` : `${helloWord}! 👋`;
+  const avatarEl = document.getElementById('greetAvatar');
+  if (avatarEl){
+    if (tgUser?.photo_url){
+      avatarEl.innerHTML = `<img src="${tgUser.photo_url}" alt="">`;
+    } else {
+      const letter = (tgUser?.first_name?.[0] || tgUser?.username?.[0] || '✦');
+      avatarEl.textContent = letter.toUpperCase();
+    }
+  }
+}
 
 function applyLang(){
   document.documentElement.lang = lang;
@@ -485,6 +587,7 @@ function applyLang(){
   });
   document.getElementById('lang-uz').classList.toggle('active', lang==='uz');
   document.getElementById('lang-ru').classList.toggle('active', lang==='ru');
+  updateGreeting();
   updateNextLabel();
   if (currentStep === totalSteps) renderReview();
 }
@@ -501,22 +604,27 @@ document.querySelectorAll('.pillgroup').forEach(group=>{
       state[key] = pill.getAttribute('data-value') || T[lang][pill.getAttribute('data-value-t')];
       state[key+'_key'] = pill.getAttribute('data-value-t') || null;
       group.closest('.field').classList.remove('invalid');
+      if (key === 'education_level') updateEduBlocks();
+      if (key === 'has_work_experience') updateWorkBlock();
     });
   });
 });
 
-/* ---------------- Photo ---------------- */
-document.getElementById('photoTrigger').onclick = ()=> document.getElementById('photoInput').click();
-document.getElementById('photoInput').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    state.photoDataUrl = reader.result;
-    document.getElementById('photoPreview').innerHTML = `<img src="${reader.result}" alt="photo">`;
-  };
-  reader.readAsDataURL(file);
-});
+/* ---------------- Conditional blocks ---------------- */
+function updateEduBlocks(){
+  document.querySelectorAll('.edu-block').forEach(b=>{
+    const show = b.getAttribute('data-edu-block') === state.education_level_key;
+    b.style.display = show ? 'block' : 'none';
+    if (!show) b.querySelectorAll('.field').forEach(f=>f.classList.remove('invalid'));
+  });
+}
+function updateWorkBlock(){
+  const show = state.has_work_experience_key === 'hw_yes';
+  const block = document.getElementById('workFieldsBlock');
+  block.style.display = show ? 'block' : 'none';
+  if (!show) block.querySelectorAll('.field').forEach(f=>f.classList.remove('invalid'));
+}
+
 
 /* ---------------- Navigation ---------------- */
 const backBtn = document.getElementById('backBtn');
@@ -542,17 +650,38 @@ const stepRequiredIds = {
   1: ['full_name','nationality','birth_date','city'],
   5: ['contact_phone']
 };
-const stepRequiredGroups = { 1:['gender','marital_status'], 2:['education_level'] };
+const stepRequiredGroups = { 1:['gender','marital_status'] };
+
+function getEduRequiredIds(){
+  switch(state.education_level_key){
+    case 'edu_high': return ['university','faculty','grad_year_high','specialty_high'];
+    case 'edu_sec': return ['school_number','grad_year_sec','city_district'];
+    case 'edu_specsec': return ['college_name','grad_year_specsec','specialty_specsec'];
+    default: return [];
+  }
+}
+function getWorkRequiredIds(){
+  return state.has_work_experience_key === 'hw_yes'
+    ? ['job_title','company_name','work_period','responsibilities']
+    : [];
+}
 
 function validateStep(n){
   let ok = true;
-  (stepRequiredIds[n]||[]).forEach(id=>{
+  const ids = [...(stepRequiredIds[n]||[])];
+  if (n === 2) ids.push(...getEduRequiredIds());
+  if (n === 3) ids.push(...getWorkRequiredIds());
+  ids.forEach(id=>{
     const el = document.getElementById(id);
     const field = el.closest('.field');
     if (!el.value.trim()){ field.classList.add('invalid'); ok = false; }
     else field.classList.remove('invalid');
   });
-  (stepRequiredGroups[n]||[]).forEach(key=>{
+
+  const groups = [...(stepRequiredGroups[n]||[])];
+  if (n === 2) groups.push('education_level');
+  if (n === 3) groups.push('has_work_experience');
+  groups.forEach(key=>{
     const group = document.querySelector(`.pillgroup[data-group="${key}"]`);
     if (!state[key]){ group.closest('.field').classList.add('invalid'); ok = false; }
     else group.closest('.field').classList.remove('invalid');
@@ -570,6 +699,45 @@ backBtn.addEventListener('click', ()=>{ if (currentStep>1) goToStep(currentStep-
 /* ---------------- Review ---------------- */
 function fieldVal(id){ const v = document.getElementById(id)?.value.trim(); return v ? v : T[lang].not_filled; }
 
+function eduReviewRows(){
+  switch(state.education_level_key){
+    case 'edu_high':
+      return [
+        [T[lang].l_edu, state.education_level || T[lang].not_filled],
+        [T[lang].l_univ, fieldVal('university')], [T[lang].l_fac, fieldVal('faculty')],
+        [T[lang].l_grad, fieldVal('grad_year_high')], [T[lang].l_spec, fieldVal('specialty_high')]
+      ];
+    case 'edu_sec':
+      return [
+        [T[lang].l_edu, state.education_level || T[lang].not_filled],
+        [T[lang].l_school, fieldVal('school_number')], [T[lang].l_district, fieldVal('city_district')],
+        [T[lang].l_grad, fieldVal('grad_year_sec')]
+      ];
+    case 'edu_specsec':
+      return [
+        [T[lang].l_edu, state.education_level || T[lang].not_filled],
+        [T[lang].l_college, fieldVal('college_name')], [T[lang].l_grad, fieldVal('grad_year_specsec')],
+        [T[lang].l_spec, fieldVal('specialty_specsec')]
+      ];
+    default:
+      return [[T[lang].l_edu, T[lang].not_filled]];
+  }
+}
+
+function workReviewRows(){
+  if (state.has_work_experience_key === 'hw_no'){
+    return [[T[lang].l_has_work, T[lang].hw_no]];
+  }
+  if (state.has_work_experience_key === 'hw_yes'){
+    return [
+      [T[lang].l_has_work, T[lang].hw_yes],
+      [T[lang].l_job, fieldVal('job_title')], [T[lang].l_comp, fieldVal('company_name')],
+      [T[lang].l_period, fieldVal('work_period')], [T[lang].l_resp, fieldVal('responsibilities')]
+    ];
+  }
+  return [[T[lang].l_has_work, T[lang].not_filled]];
+}
+
 function renderReview(){
   const groups = [
     { label:T[lang].review_personal, rows:[
@@ -578,14 +746,8 @@ function renderReview(){
       [T[lang].l_gender, state.gender || T[lang].not_filled],
       [T[lang].l_married, state.marital_status || T[lang].not_filled]
     ]},
-    { label:T[lang].review_edu, rows:[
-      [T[lang].l_edu, state.education_level || T[lang].not_filled], [T[lang].l_univ, fieldVal('university')],
-      [T[lang].l_fac, fieldVal('faculty')], [T[lang].l_grad, fieldVal('graduation_year')], [T[lang].l_spec, fieldVal('specialty')]
-    ]},
-    { label:T[lang].review_work, rows:[
-      [T[lang].l_job, fieldVal('job_title')], [T[lang].l_comp, fieldVal('company_name')],
-      [T[lang].l_period, fieldVal('work_period')], [T[lang].l_resp, fieldVal('responsibilities')]
-    ]},
+    { label:T[lang].review_edu, rows: eduReviewRows() },
+    { label:T[lang].review_work, rows: workReviewRows() },
     { label:T[lang].review_skills, rows:[
       [T[lang].l_pskills, fieldVal('professional_skills')], [T[lang].l_it, fieldVal('computer_skills')],
       [T[lang].l_lang, fieldVal('languages')], [T[lang].l_drive, fieldVal('driver_license')],
@@ -606,36 +768,76 @@ function renderReview(){
 }
 
 /* ---------------- Submit ---------------- */
+function val(id){ return document.getElementById(id)?.value.trim() || ''; }
+
+function getEduPayload(){
+  switch(state.education_level_key){
+    case 'edu_high':
+      return {
+        university: val('university'), faculty: val('faculty'),
+        graduation_year: val('grad_year_high'), specialty: val('specialty_high'),
+        school_number:'', city_district:'', college_name:''
+      };
+    case 'edu_sec':
+      return {
+        university:'', faculty:'', specialty:'', college_name:'',
+        graduation_year: val('grad_year_sec'),
+        school_number: val('school_number'), city_district: val('city_district')
+      };
+    case 'edu_specsec':
+      return {
+        university:'', faculty:'', school_number:'', city_district:'',
+        college_name: val('college_name'), graduation_year: val('grad_year_specsec'),
+        specialty: val('specialty_specsec')
+      };
+    default:
+      return { university:'', faculty:'', graduation_year:'', specialty:'', school_number:'', city_district:'', college_name:'' };
+  }
+}
+
+function getWorkPayload(){
+  if (state.has_work_experience_key === 'hw_yes'){
+    return {
+      job_title: val('job_title'), company_name: val('company_name'),
+      work_period: val('work_period'), responsibilities: val('responsibilities')
+    };
+  }
+  // Ish tajribasi yo'q — Word/hisobotda tegishli joylarga "Yo'q" deb yoziladi
+  return {
+    job_title: T[lang].no, company_name: T[lang].no,
+    work_period: T[lang].no, responsibilities: T[lang].no
+  };
+}
+
 function submitForm(){
   const payload = {
     type: 'resume',
     lang,
-    full_name: document.getElementById('full_name').value.trim(),
-    nationality: document.getElementById('nationality').value.trim(),
+    full_name: val('full_name'),
+    nationality: val('nationality'),
     birth_date: document.getElementById('birth_date').value,
-    city: document.getElementById('city').value.trim(),
+    city: val('city'),
     gender: state.gender || '',
     marital_status: state.marital_status || '',
     education_level: state.education_level || '',
-    university: document.getElementById('university').value.trim(),
-    faculty: document.getElementById('faculty').value.trim(),
-    graduation_year: document.getElementById('graduation_year').value.trim(),
-    specialty: document.getElementById('specialty').value.trim(),
-    job_title: document.getElementById('job_title').value.trim(),
-    company_name: document.getElementById('company_name').value.trim(),
-    work_period: document.getElementById('work_period').value.trim(),
-    responsibilities: document.getElementById('responsibilities').value.trim(),
-    professional_skills: document.getElementById('professional_skills').value.trim(),
-    computer_skills: document.getElementById('computer_skills').value.trim(),
-    languages: document.getElementById('languages').value.trim(),
-    driver_license: document.getElementById('driver_license').value.trim(),
+    ...getEduPayload(),
+    has_work_experience: state.has_work_experience || '',
+    ...getWorkPayload(),
+    professional_skills: val('professional_skills'),
+    computer_skills: val('computer_skills'),
+    languages: val('languages'),
+    driver_license: val('driver_license'),
     military_service: state.military_service || '',
-    contact_phone: document.getElementById('contact_phone').value.trim(),
-    contact_email: document.getElementById('contact_email').value.trim(),
-    salary_expectation: document.getElementById('salary_expectation').value.trim(),
+    contact_phone: val('contact_phone'),
+    contact_email: val('contact_email'),
+    salary_expectation: val('salary_expectation'),
     employment_type: state.employment_type || '',
-    about_me: document.getElementById('about_me').value.trim(),
-    photo_base64: state.photoDataUrl || ''
+    about_me: val('about_me')
+    // Eslatma: rasm bu yerda YUBORILMAYDI — Telegram WebApp'ning
+    // sendData() metodi 4096 baytdan katta ma'lumotni qabul qilmaydi,
+    // rasm esa deyarli har doim bundan kattaroq bo'ladi. Shu sababli
+    // forma yuborilgach, bot foydalanuvchidan rasmni ODDIY fotosurat
+    // sifatida alohida xabar qilib yuborishni so'raydi.
   };
 
   document.getElementById('formWrap').querySelectorAll('form, .head, .progress-row').forEach(el=>el.style.display='none');
